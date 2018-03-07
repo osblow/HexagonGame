@@ -2,13 +2,46 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HexManager : MonoBehaviour {
+public class HexManager : MonoBehaviour
+{
+    public static HexManager Instance { get { return s_instance; } }
+    private static HexManager s_instance;
+
+    private void Awake()
+    {
+        s_instance = this;
+    }
+
+
+
+
+    public bool HasTarget = false;
 
     private const string c_hex_res = "model/hex";
     private const float c_sqrt_3 = 1.717f;
 
-    private List<GameObject> m_hexes = new List<GameObject>();
+    private Hexagon[][] m_hexagons;
 
+
+
+    public void UpdateAllBalance(Hexagon exclude = null)
+    {
+        if(m_hexagons == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < m_hexagons.Length; i++)
+        {
+            for (int j = 0; j < m_hexagons[i].Length; j++)
+            {
+                if (m_hexagons[i][j] && m_hexagons[i][j] != exclude)
+                {
+                    m_hexagons[i][j].UpdateBalance();
+                }
+            }
+        }
+    }
 
 	// Use this for initialization
 	void Start () {
@@ -17,75 +50,90 @@ public class HexManager : MonoBehaviour {
 	
     void Init()
     {
-        //Hexagon hex1 = new Hexagon();
+        int raw = 11;
+        int maxColumn = 11;
+        int [] columnForRaws = { 6,7,8,9,10,11,10,9,8,7,6 };
+        int[] columnOffsetForRaws = { 0,0,0,0,0,0,1,2,3,4,5};
 
-        //for (HexDir i = HexDir.Left; i <= HexDir.LeftBack; i++)
-        //{
-        //    Hexagon hex2 = new Hexagon();
-        //    hex2.Obj.transform.position = hex1.GetSiblingPos(i);
-        //    hex2.Obj.name = i.ToString();
-        //}
-
-        // create walls outside
-        List<SolidHexagon> wallHexes = new List<SolidHexagon>();
-        wallHexes.Add(new SolidHexagon());
-        wallHexes[0].SetInvalidDir(new HexDir[] { HexDir.Left, HexDir.LeftForward, HexDir.RightForward, HexDir.LeftBack });
-        for (int i = 1; i < 6; i++)
+        m_hexagons = new Hexagon[raw][];
+        for (int r = 0; r < raw; r++)
         {
-            SolidHexagon temp_wall = wallHexes[i - 1].CreateSibling(HexDir.Right) as SolidHexagon;
-            temp_wall.SetInvalidDir(new HexDir[] { HexDir.RightForward});
-            wallHexes.Add(temp_wall);
+            m_hexagons[r] = new Hexagon[maxColumn];
         }
-        wallHexes[5].SetInvalidDir(new HexDir[] { HexDir.Right });
 
-        for (int i = 6; i < 11; i++)
+
+        int i = 0, j = columnOffsetForRaws[i];
+        m_hexagons[i][j] = new SolidHexagon();
+        for (; i < m_hexagons.Length; i++)
         {
-            SolidHexagon temp_wall = wallHexes[i - 1].CreateSibling(HexDir.RightBack) as SolidHexagon;
-            temp_wall.SetInvalidDir(new HexDir[] { HexDir.Right});
-            wallHexes.Add(temp_wall);
+            j = columnOffsetForRaws[i];
+            if (i > 0)
+            {
+                m_hexagons[i][j] = m_hexagons[i-1][j].CreateSibling<SolidHexagon>(HexDir.LeftBack, i + "-" + j);
+            }
+            ++j;
+
+            for (; j < columnOffsetForRaws[i] + columnForRaws[i]; j++)
+            {
+                if (i == 0 || i == m_hexagons.Length-1 || j == 0 || j == columnOffsetForRaws[i]+ columnForRaws[i] - 1)
+                {
+                    m_hexagons[i][j] = m_hexagons[i][j - 1].CreateSibling<SolidHexagon>(HexDir.Right, i + "-" + j);
+                }
+                else
+                {
+                    m_hexagons[i][j] = m_hexagons[i][j - 1].CreateSibling<GameHexagon>(HexDir.Right, i + "-" + j);
+                }
+            }
+
+            
         }
-        wallHexes[10].SetInvalidDir(new HexDir[] { HexDir.RightBack });
 
-        for (int i = 11; i < 16; i++)
+        for (int k = 0; k < m_hexagons.Length; k++)
         {
-            SolidHexagon temp_wall = wallHexes[i - 1].CreateSibling(HexDir.LeftBack) as SolidHexagon;
-            temp_wall.SetInvalidDir(new HexDir[] { HexDir.RightBack });
-            wallHexes.Add(temp_wall);
-        }
-        wallHexes[15].SetInvalidDir(new HexDir[] { HexDir.LeftBack });
+            for (int x = 0; x < m_hexagons[k].Length; x++)
+            {
+                Hexagon theHex = m_hexagons[k][x];
+                if (theHex == null)
+                {
+                    continue;
+                }
 
-        for (int i = 16; i < 21; i++)
-        {
-            SolidHexagon temp_wall = wallHexes[i - 1].CreateSibling(HexDir.Left) as SolidHexagon;
-            temp_wall.SetInvalidDir(new HexDir[] { HexDir.LeftBack });
-            wallHexes.Add(temp_wall);
-        }
-        wallHexes[20].SetInvalidDir(new HexDir[] { HexDir.Left });
+                // left forward
+                if (k > 0 && x > 0 && m_hexagons[k - 1][x - 1])
+                {
+                    theHex.SetSibling(HexDir.LeftForward, m_hexagons[k - 1][x - 1]);
+                }
 
-        for (int i = 21; i < 26; i++)
-        {
-            SolidHexagon temp_wall = wallHexes[i - 1].CreateSibling(HexDir.LeftForward) as SolidHexagon;
-            temp_wall.SetInvalidDir(new HexDir[] { HexDir.Left });
-            wallHexes.Add(temp_wall);
-        }
-        wallHexes[25].SetInvalidDir(new HexDir[] { HexDir.LeftForward });
+                // right forward
+                if (k > 0 && m_hexagons[k - 1][x])
+                {
+                    theHex.SetSibling(HexDir.RightForward, m_hexagons[k - 1][x]);
+                }
 
-        for (int i = 26; i < 31; i++)
-        {
-            SolidHexagon temp_wall = wallHexes[i - 1].CreateSibling(HexDir.RightForward) as SolidHexagon;
-            temp_wall.SetInvalidDir(new HexDir[] { HexDir.LeftForward });
-            wallHexes.Add(temp_wall);
-        }
-        wallHexes[30].SetInvalidDir(new HexDir[] { HexDir.Left, HexDir.LeftForward, HexDir.RightForward, HexDir.Right });
+                // left
+                if (x > 0 && m_hexagons[k][x - 1])
+                {
+                    theHex.SetSibling(HexDir.Left, m_hexagons[k][x - 1]);
+                }
 
+                // right
+                if (x < m_hexagons.Length - 1 && m_hexagons[k][x + 1])
+                {
+                    theHex.SetSibling(HexDir.Right, m_hexagons[k][x + 1]);
+                }
 
-
-
-
-
-        for (int i = 0; i < wallHexes.Count; i++)
-        {
-            wallHexes[i].FillSibling();
+                // left back
+                if (k < m_hexagons.Length - 1 && m_hexagons[k + 1][x])
+                {
+                    theHex.SetSibling(HexDir.LeftBack, m_hexagons[k + 1][x]);
+                }
+                
+                // right back
+                if(k < m_hexagons.Length-1 && x < m_hexagons[k].Length - 1 && m_hexagons[k + 1][x + 1])
+                {
+                    theHex.SetSibling(HexDir.RightBack, m_hexagons[k + 1][x + 1]);
+                }
+            }
         }
     }
 
@@ -116,6 +164,13 @@ public enum HexDir
 
 public class Hexagon
 {
+    public static implicit operator bool(Hexagon hex)
+    {
+        return hex != null && hex.Obj && hex.m_enabled;
+    }
+
+
+
     public GameObject Obj = null;
 
     protected Dictionary<HexDir, Hexagon> m_siblingHexes = new Dictionary<HexDir, Hexagon>();
@@ -127,6 +182,7 @@ public class Hexagon
         }
     }
 
+    protected bool m_enabled = true;
 
     public Hexagon()
     {
@@ -154,29 +210,56 @@ public class Hexagon
         }
     }
 
-    public virtual Hexagon CreateSibling(HexDir dir)
+    public virtual Hexagon CreateSibling<T>(HexDir dir, string index_name)
+        where T: Hexagon, new()
     {
-        throw new System.NotImplementedException();
+        T t = new T();
+        t.Obj.transform.position = GetSiblingPos(dir);
+        m_siblingHexes[dir] = t;
+        return t;
     }
 
-    public virtual bool FillSibling()
+    public void SetSibling(HexDir dir, Hexagon hex)
     {
-        throw new System.NotImplementedException();
+        m_siblingHexes[dir] = hex;
     }
 
-    public virtual bool IsBalance()
+    public void RemoveSibling(HexDir dir)
     {
-        if(m_siblingHexes.ContainsKey(HexDir.Left) && m_siblingHexes.ContainsKey(HexDir.Right))
+        m_siblingHexes.Remove(dir);
+    }
+
+    
+    protected virtual bool IsBalance()
+    {
+        if(m_siblingHexes.ContainsKey(HexDir.Left) 
+            && m_siblingHexes.ContainsKey(HexDir.Right))
         {
             return true;
         }
 
-        if(m_siblingHexes.ContainsKey(HexDir.LeftForward) && m_siblingHexes.ContainsKey(HexDir.RightBack))
+        if(m_siblingHexes.ContainsKey(HexDir.LeftForward) 
+            && m_siblingHexes.ContainsKey(HexDir.RightBack))
         {
             return true;
         }
 
-        if (m_siblingHexes.ContainsKey(HexDir.LeftBack) && m_siblingHexes.ContainsKey(HexDir.RightForward))
+        if (m_siblingHexes.ContainsKey(HexDir.LeftBack) 
+            && m_siblingHexes.ContainsKey(HexDir.RightForward))
+        {
+            return true;
+        }
+
+        if(m_siblingHexes.ContainsKey(HexDir.LeftForward) 
+            && m_siblingHexes.ContainsKey(HexDir.Right) 
+            && m_siblingHexes.ContainsKey(HexDir.LeftBack))
+        {
+            return true;
+        }
+
+        if(m_siblingHexes.ContainsKey(HexDir.Left)
+            && m_siblingHexes.ContainsKey(HexDir.RightForward)
+            && m_siblingHexes.ContainsKey(HexDir.RightBack))
         {
             return true;
         }
@@ -184,11 +267,19 @@ public class Hexagon
         return false;
     }
 
+    public virtual void UpdateBalance()
+    {
+        if (!IsBalance())
+        {
+            Destroy();
+        }
+    }
+
     public void Destroy()
     {
         if (Obj)
         {
-            GameObject.Destroy(Obj);
+            GameObject.Destroy(Obj, 5.0f);
         }
     }
 
@@ -202,18 +293,6 @@ public class Hexagon
         else
         {
             m_siblingHexes.Add(dir, hex);
-        }
-
-        if (null != hex)
-        {
-            if (setOpposite)
-            {
-                hex.AddOrReplaceSibling(GetOppositeDir(dir), this, false, searchAround);
-            }
-            else if(searchAround)
-            {
-                SearchSurroundedHex(hex, dir);
-            }
         }
     }
 
@@ -274,7 +353,7 @@ public class Hexagon
         return result;
     }
 
-    static HexDir GetOppositeDir(HexDir dir)
+    protected static HexDir GetOppositeDir(HexDir dir)
     {
         switch (dir)
         {
@@ -306,30 +385,60 @@ public class GameHexagon : Hexagon
         }
     }
 
+    private GameObject m_model;
 
-    public override Hexagon CreateSibling(HexDir dir)
+
+    public GameHexagon() : base()
     {
-        GameHexagon hex = new GameHexagon();
-        hex.Obj.transform.position = GetSiblingPos(dir);
-        AddOrReplaceSibling(dir, hex);
+        m_model = Obj.transform.Find("hexagon/Cylinder").gameObject;
+        m_model.GetComponent<CustomCollider>().OnClick += OnClick;
+        m_model.GetComponent<MeshCollider>().isTrigger = true;
 
-        return hex;
+        // random color
+        Color randColor = Random.Range(0f, 1f) > 0.5f ? Color.white * 0.7f : Color.green * 0.4f;
+        m_model.GetComponent<Renderer>().material.color = randColor;
     }
 
-    public override bool FillSibling()
+    public void OnClick()
     {
-        bool everCreated = false;
-
-        for (HexDir i = HexDir.Left; i <= HexDir.LeftBack; i++)
+        if (!HexManager.Instance.HasTarget)
         {
-            if (!m_siblingHexes.ContainsKey(i))
-            {
-                CreateSibling(i);
-                everCreated = true;
-            }
+            m_model.GetComponent<Renderer>().material.color = Color.red;
+            HexManager.Instance.HasTarget = true;
         }
+        else
+        {
+            m_enabled = false;
+            UpdateBalance();
+        }
+    }
 
-        return everCreated;
+    protected override bool IsBalance()
+    {
+        return base.IsBalance() && m_enabled;
+    }
+
+    public override void UpdateBalance()
+    {
+        if (!IsBalance())
+        {
+            foreach (KeyValuePair<HexDir, Hexagon> kval in m_siblingHexes)
+            {
+                if (kval.Value)
+                {
+                    kval.Value.RemoveSibling(Hexagon.GetOppositeDir(kval.Key));
+                }
+            }
+            
+            m_model.AddComponent<Rigidbody>();
+            m_model.GetComponent<MeshCollider>().isTrigger = false;
+
+            m_siblingHexes.Clear();
+            m_enabled = false;
+            Destroy();
+
+            HexManager.Instance.UpdateAllBalance(this);
+        }
     }
 }
 
@@ -343,17 +452,7 @@ public class SolidHexagon : Hexagon
         }
     }
 
-
-    public override Hexagon CreateSibling(HexDir dir)
-    {
-        SolidHexagon hex = new SolidHexagon();
-        hex.Obj.transform.position = GetSiblingPos(dir);
-        AddOrReplaceSibling(dir, hex);
-
-        return hex;
-    }
-
-    public override bool IsBalance()
+    protected override bool IsBalance()
     {
         return true;
     }
@@ -364,27 +463,5 @@ public class SolidHexagon : Hexagon
         {
             AddOrReplaceSibling(dir, null);
         }
-    }
-
-    private Hexagon CreateGameSibling(HexDir dir)
-    {
-        GameHexagon hex = new GameHexagon();
-        hex.Obj.transform.position = GetSiblingPos(dir);
-        AddOrReplaceSibling(dir, hex);
-
-        return hex;
-    }
-
-    public override bool FillSibling()
-    {
-        for (HexDir i = HexDir.Left; i <= HexDir.LeftBack; i++)
-        {
-            if (!m_siblingHexes.ContainsKey(i))
-            {
-                CreateGameSibling(i);
-            }
-        }
-
-        return true;
     }
 }
