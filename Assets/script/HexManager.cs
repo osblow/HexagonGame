@@ -24,6 +24,23 @@ public class HexManager : MonoBehaviour
 
 
 
+    public void Restart()
+    {
+        for (int i = 0; i < m_hexagons.Length; i++)
+        {
+            for (int j = 0; j < m_hexagons[i].Length; j++)
+            {
+                if (m_hexagons[i][j])
+                {
+                    m_hexagons[i][j].DestroyImmediate();
+                }
+            }
+        }
+
+        HasTarget = false;
+        Init();
+    }
+
     public void UpdateAllBalance(Hexagon exclude = null)
     {
         if(m_hexagons == null)
@@ -214,6 +231,7 @@ public class Hexagon
         where T: Hexagon, new()
     {
         T t = new T();
+        t.Obj.name = index_name;
         t.Obj.transform.position = GetSiblingPos(dir);
         m_siblingHexes[dir] = t;
         return t;
@@ -280,6 +298,14 @@ public class Hexagon
         if (Obj)
         {
             GameObject.Destroy(Obj, 5.0f);
+        }
+    }
+
+    public void DestroyImmediate()
+    {
+        if (Obj)
+        {
+            GameObject.DestroyImmediate(Obj);
         }
     }
 
