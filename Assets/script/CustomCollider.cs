@@ -22,6 +22,12 @@ public class CustomCollider : MonoBehaviour
 
     private void OnMouseDown()
     {
+        if(Globals.Instance.GameStep != GameStep.SelectingTarget &&
+            Globals.Instance.GameStep != GameStep.SelectingMain)
+        {
+            return;
+        }
+
         if(OnClick != null)
         {
             OnClick();

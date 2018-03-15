@@ -7,10 +7,11 @@ using UnityEngine.UI;
 public enum GameStep
 {
     NotStart = 0,
-    SelectingTarget = 1,
+    SelectingMain = 1,
     Start = 2,
-    SelectingStrength = 3,
-    Hitting = 4,
+    SelectingTarget = 3,
+    SelectingStrength = 4,
+    Hitting = 5,
 }
 
 
@@ -24,10 +25,32 @@ public class Globals : MonoBehaviour
         s_instance = this;
     }
 
+    private GameStep m_gameStep;
+    public GameStep GameStep
+    {
+        set
+        {
+            m_gameStep = value;
+            if(GameView != null)
+            {
+                GameView.ShowTips();
+            }
+        }
+        get
+        {
+            return m_gameStep;
+        }
+    }
+
+
     public Canvas Canvas;
-    public GameStep GameStep;
     public HexManager HexManager;
     public GameView GameView;
+
+
+    private Hexagon m_mainHex;
+    private Hexagon m_curTargetHex;
+    private const float c_strenghtSensitivity = 1.0f;
 
     // Use this for initialization
     void Start ()
@@ -40,6 +63,8 @@ public class Globals : MonoBehaviour
         GameStep = GameStep.NotStart;
         HexManager = CreateInstance<HexManager>();
         CreateGameUI();
+
+        GameStep = GameStep.SelectingMain;
     }
 	
     private T CreateInstance<T>()
@@ -58,11 +83,38 @@ public class Globals : MonoBehaviour
     {
         GameObject uiObj = Instantiate(Resources.Load("ui/GameView") as GameObject);
         uiObj.transform.SetParent(Canvas.transform, false);
+        GameView = uiObj.GetComponent<GameView>();
+    }
+
+
+    public void OnSelectMain(Hexagon hex)
+    {
+        m_mainHex = hex;
+
+        GameStep = GameStep.SelectingTarget;
+    }
+
+    public void OnSelectTarget(Hexagon hex)
+    {
+        m_curTargetHex = hex;
+        HexManager.OnSelectTarget(hex);
+        GameStep = GameStep.SelectingStrength;
     }
 
 	// Update is called once per frame
 	void Update ()
     {
-		
+		if(GameStep == GameStep.Hitting)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                float strength = GameView.StopSliderMoving() * c_strenghtSensitivity;
+                m_curTargetHex.OnHit(strength);
+
+                GameView.ResetSlider();
+                HexManager.OnSelectTarget(null);
+                GameStep = GameStep.SelectingTarget;
+            }
+        }
 	}
 }

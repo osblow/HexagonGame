@@ -23,12 +23,21 @@ public class GameView : MonoBehaviour
         "任意",
     };
 
+    public static Dictionary<GameStep, string> s_tips = new Dictionary<GameStep, string>
+    {
+        { GameStep.NotStart, "等待开始..." },
+        { GameStep.SelectingMain, "选择主格子" },
+        { GameStep.Start, "游戏开始" },
+        { GameStep.SelectingTarget, "请选择目标格子" },
+        { GameStep.SelectingStrength, "请点击锤子图标，激活力度条" },
+        { GameStep.Hitting, "点击屏幕任何位置，砸啦！" },
+    };
 
+    public Text TipsText;
     public Text Optext;
     public Slider StrengthSlider;
 
     private HitStrength m_hitStrength;
-    private bool m_hitStart = false;
 
     private void Start()
     {
@@ -41,16 +50,6 @@ public class GameView : MonoBehaviour
         {
             m_hitStrength.Update();
         }
-
-        if (m_hitStart)
-        {
-            if (Input.GetMouseButtonDown(0))
-            {
-                m_hitStrength.SetEnabled(false);
-                Debug.Log(m_hitStrength.Value);
-                m_hitStart = false;
-            }
-        }
     }
 
 
@@ -61,13 +60,42 @@ public class GameView : MonoBehaviour
 
     public void OnClickRestart()
     {
-        HexManager.Instance.Restart();
+        //HexManager.Instance.Restart();
     }
 
     public void OnClickHit()
     {
-        m_hitStart = true;
+        if(Globals.Instance.GameStep != GameStep.SelectingStrength)
+        {
+            return;
+        }
+
         m_hitStrength.SetEnabled(true);
+        Globals.Instance.GameStep = GameStep.Hitting;
+    }
+
+
+    /// <summary>
+    /// 力度条停止，并返回当前力度（0-1）
+    /// </summary>
+    /// <returns>力度</returns>
+    public float StopSliderMoving()
+    {
+        m_hitStrength.SetEnabled(false);
+        Debug.Log(m_hitStrength.Value);
+
+        return m_hitStrength.Value;
+    }
+
+    public void ResetSlider()
+    {
+        m_hitStrength.Reset();
+    }
+
+
+    public void ShowTips()
+    {
+        TipsText.text = s_tips[Globals.Instance.GameStep];
     }
 }
 
@@ -86,7 +114,7 @@ public class HitStrength
     public HitStrength(Slider sliderObj)
     {
         m_sliderObj = sliderObj;
-        Init();
+        Reset();
     }
 
     public void SetEnabled(bool enabled)
@@ -94,11 +122,23 @@ public class HitStrength
         m_enabled = enabled;
     }
 
-    private void Init()
+    public void Reset()
     {
+        Globals.Instance.StartCoroutine(ResetAnim());
+    }
+
+    IEnumerator ResetAnim()
+    {
+        while(m_curValue > 0)
+        {
+            m_curValue -= Time.deltaTime * 2;
+            m_sliderObj.value = m_curValue;
+            yield return null;
+        }
+
         m_curSpeed = 0;
         m_curValue = 0;
-        m_sliderObj.value = m_curValue;
+        m_sliderObj.value = 0;
     }
 
     public void Update()

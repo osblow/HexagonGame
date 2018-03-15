@@ -4,24 +4,12 @@ using UnityEngine;
 
 public class HexManager : MonoBehaviour
 {
-    public static HexManager Instance { get { return s_instance; } }
-    private static HexManager s_instance;
-
-    private void Awake()
-    {
-        s_instance = this;
-    }
-
-
-
-
-    public bool HasTarget = false;
-
     private const string c_hex_res = "model/hex";
     private const float c_sqrt_3 = 1.717f;
 
-    private Hexagon[][] m_hexagons;
+    private const float c_targetAlpha = 0.5f;
 
+    private Hexagon[][] m_hexagons;
 
 
     public void Restart()
@@ -37,7 +25,6 @@ public class HexManager : MonoBehaviour
             }
         }
 
-        HasTarget = false;
         Init();
     }
 
@@ -55,6 +42,27 @@ public class HexManager : MonoBehaviour
                 if (m_hexagons[i][j] && m_hexagons[i][j] != exclude)
                 {
                     m_hexagons[i][j].UpdateBalance();
+                }
+            }
+        }
+    }
+
+    public void OnSelectTarget(Hexagon target)
+    {
+        if (m_hexagons == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < m_hexagons.Length; i++)
+        {
+            for (int j = 0; j < m_hexagons[i].Length; j++)
+            {
+                if (m_hexagons[i][j])
+                {
+                    Color theColor = m_hexagons[i][j].Model.GetComponent<Renderer>().material.color;
+                    theColor.a = m_hexagons[i][j] == target ? c_targetAlpha : 1f;
+                    m_hexagons[i][j].Model.GetComponent<Renderer>().material.color = theColor;
                 }
             }
         }
@@ -80,13 +88,13 @@ public class HexManager : MonoBehaviour
 
 
         int i = 0, j = columnOffsetForRaws[i];
-        m_hexagons[i][j] = new SolidHexagon();
+        m_hexagons[i][j] = new SolidHexagon(Vector3.zero);
         for (; i < m_hexagons.Length; i++)
         {
             j = columnOffsetForRaws[i];
             if (i > 0)
             {
-                m_hexagons[i][j] = m_hexagons[i-1][j].CreateSibling<SolidHexagon>(HexDir.LeftBack, i + "-" + j);
+                m_hexagons[i][j] = HexFactory.CreateHexagon(HexType.Solid, m_hexagons[i - 1][j], HexDir.LeftBack, i + "-" + j);
             }
             ++j;
 
@@ -94,11 +102,11 @@ public class HexManager : MonoBehaviour
             {
                 if (i == 0 || i == m_hexagons.Length-1 || j == 0 || j == columnOffsetForRaws[i]+ columnForRaws[i] - 1)
                 {
-                    m_hexagons[i][j] = m_hexagons[i][j - 1].CreateSibling<SolidHexagon>(HexDir.Right, i + "-" + j);
+                    m_hexagons[i][j] = HexFactory.CreateHexagon(HexType.Solid, m_hexagons[i][j - 1], HexDir.Right, i + "-" + j);
                 }
                 else
                 {
-                    m_hexagons[i][j] = m_hexagons[i][j - 1].CreateSibling<GameHexagon>(HexDir.Right, i + "-" + j);
+                    m_hexagons[i][j] = HexFactory.CreateHexagon(HexType.Game, m_hexagons[i][j - 1], HexDir.Right, i + "-" + j);
                 }
             }
 
@@ -169,6 +177,37 @@ public class Constants
     public static float c_sqrt_3 = 1.717f;
 }
 
+public enum HexType
+{
+    None = 0,
+    Game = 1,
+    Solid = 2,
+}
+
+public class HexFactory
+{
+    public static Hexagon CreateHexagon(HexType type, Hexagon sibling, HexDir dirToSibling, string name)
+    {
+        Hexagon result = null;
+
+        if(type == HexType.Game)
+        {
+            result = new GameHexagon(sibling.GetSiblingPos(dirToSibling));
+            result.Obj.name = name;
+        }
+        else if(type == HexType.Solid)
+        {
+            result = new SolidHexagon(sibling.GetSiblingPos(dirToSibling));
+            result.Obj.name = name;
+        }
+
+        return result;
+    }
+}
+
+
+
+
 public enum HexDir
 {
     Left = 1,
@@ -186,9 +225,34 @@ public class Hexagon
         return hex != null && hex.Obj && hex.m_enabled;
     }
 
+    protected const float c_maxHeightOffset = 1;
+    protected float m_heightOffset = 0;
+    /// <summary>
+    /// 
+    /// </summary>
+    public virtual float HeightOffset
+    {
+        set
+        {
+            m_heightOffset = value;
+
+            Obj.transform.position = m_originPos - Vector3.up * m_heightOffset;
+
+            if(m_heightOffset >= c_maxHeightOffset)
+            {
+                UpdateBalance();
+            }
+        }
+        get
+        {
+            return m_heightOffset;
+        }
+    }
 
 
     public GameObject Obj = null;
+    public GameObject Model;
+    protected Vector3 m_originPos = Vector3.zero;
 
     protected Dictionary<HexDir, Hexagon> m_siblingHexes = new Dictionary<HexDir, Hexagon>();
     protected virtual string m_resPath
@@ -200,10 +264,20 @@ public class Hexagon
     }
 
     protected bool m_enabled = true;
+    // friction against six directions
+    protected Dictionary<HexDir, float> m_frictions = new Dictionary<HexDir, float>();
 
-    public Hexagon()
+
+    public Hexagon(Vector3 pos)
     {
-        Obj = GameObject.Instantiate(Resources.Load(m_resPath) as GameObject);
+        m_originPos = pos;
+        Obj = GameObject.Instantiate(Resources.Load(m_resPath) as GameObject, pos, Quaternion.identity);
+        Model = Obj.transform.Find("hexagon/Cylinder").gameObject;
+        // friction
+        for (HexDir i = HexDir.Left; i <= HexDir.LeftBack; i++)
+        {
+            m_frictions.Add(i, Random.Range(0, 0.2f));
+        }
     }
 
     public Vector3 GetSiblingPos(HexDir dir)
@@ -227,12 +301,12 @@ public class Hexagon
         }
     }
 
-    public virtual Hexagon CreateSibling<T>(HexDir dir, string index_name)
+    public virtual Hexagon CreateSibling<T>(HexDir dir, string index_name, System.Func<System.Type, Vector3, T> newFunc)
         where T: Hexagon, new()
     {
-        T t = new T();
+        T t = newFunc(typeof(T), GetSiblingPos(dir));
         t.Obj.name = index_name;
-        t.Obj.transform.position = GetSiblingPos(dir);
+        //t.Obj.transform.position = GetSiblingPos(dir);
         m_siblingHexes[dir] = t;
         return t;
     }
@@ -309,6 +383,11 @@ public class Hexagon
         }
     }
 
+    public virtual void OnHit(float strength)
+    {
+
+    }
+
     protected void AddOrReplaceSibling(HexDir dir, Hexagon hex, bool setOpposite = true, bool searchAround = true)
     {
         if (m_siblingHexes.ContainsKey(dir))
@@ -322,33 +401,33 @@ public class Hexagon
         }
     }
 
-    private void SearchSurroundedHex(Hexagon sibling, HexDir dir)
-    {
-        Hexagon cur = sibling;
-        HexDir curDir = GetNextDir(GetOppositeDir(dir), false);
-        HexDir startDir = GetNextDir(curDir, false);
+    //private void SearchSurroundedHex(Hexagon sibling, HexDir dir)
+    //{
+    //    Hexagon cur = sibling;
+    //    HexDir curDir = GetNextDir(GetOppositeDir(dir), false);
+    //    HexDir startDir = GetNextDir(curDir, false);
         
 
-        int limit = 10;
-        while(curDir != startDir && limit-- > 0)
-        {
-            if (null == cur || !cur.m_siblingHexes.ContainsKey(curDir))// || null == cur.m_siblingHexes[curDir])
-            {
-                break;
-            }
+    //    int limit = 10;
+    //    while(curDir != startDir && limit-- > 0)
+    //    {
+    //        if (null == cur || !cur.m_siblingHexes.ContainsKey(curDir))// || null == cur.m_siblingHexes[curDir])
+    //        {
+    //            break;
+    //        }
 
-            if (m_siblingHexes.ContainsKey(curDir))
-            {
-                continue;
-            }
+    //        if (m_siblingHexes.ContainsKey(curDir))
+    //        {
+    //            continue;
+    //        }
 
-            HexDir theDir = GetOppositeDir(GetNextDir(GetNextDir(curDir)));
-            AddOrReplaceSibling(theDir, cur.m_siblingHexes[curDir], true, false);
+    //        HexDir theDir = GetOppositeDir(GetNextDir(GetNextDir(curDir)));
+    //        AddOrReplaceSibling(theDir, cur.m_siblingHexes[curDir], true, false);
 
-            cur = cur.m_siblingHexes[curDir];
-            curDir = GetNextDir(curDir);
-        }
-    }
+    //        cur = cur.m_siblingHexes[curDir];
+    //        curDir = GetNextDir(curDir);
+    //    }
+    //}
 
     /// <summary>
     /// Get next direction, default is clockwise
@@ -411,37 +490,57 @@ public class GameHexagon : Hexagon
         }
     }
 
-    private GameObject m_model;
+    private static Color s_whiteColor = new Color(0.7f, 0.7f, 0.7f, 1.0f);
+    private static Color s_greenColor = new Color(0f, 0.4f, 0, 1.0f);
 
 
-    public GameHexagon() : base()
+    public GameHexagon(Vector3 pos) : base(pos)
     {
-        m_model = Obj.transform.Find("hexagon/Cylinder").gameObject;
-        m_model.GetComponent<CustomCollider>().OnClick += OnClick;
-        m_model.GetComponent<MeshCollider>().isTrigger = true;
+        Model.GetComponent<CustomCollider>().OnClick += OnClick;
+        Model.GetComponent<MeshCollider>().isTrigger = true;
 
         // random color
-        Color randColor = Random.Range(0f, 1f) > 0.5f ? Color.white * 0.7f : Color.green * 0.4f;
-        m_model.GetComponent<Renderer>().material.color = randColor;
+        Color randColor = Random.Range(0f, 1f) > 0.5f ? s_whiteColor : s_greenColor;
+        Model.GetComponent<Renderer>().material.color = randColor;
     }
 
     public void OnClick()
     {
-        if (!HexManager.Instance.HasTarget)
+        if (Globals.Instance.GameStep == GameStep.SelectingMain)
         {
-            m_model.GetComponent<Renderer>().material.color = Color.red;
-            HexManager.Instance.HasTarget = true;
+            Model.GetComponent<Renderer>().material.color = Color.red;
+            Globals.Instance.OnSelectMain(this);
         }
         else
         {
-            m_enabled = false;
-            UpdateBalance();
+            Globals.Instance.OnSelectTarget(this);
+            //m_enabled = false;
+            //UpdateBalance();
+        }
+    }
+
+    public override void OnHit(float strength)
+    {
+        if(strength == 0)
+        {
+            return;
+        }
+        HeightOffset += strength * c_maxHeightOffset;
+
+        foreach (KeyValuePair<HexDir, Hexagon> kval in m_siblingHexes)
+        {
+            if (kval.Value)
+            {
+                float staticFric_move = (1 - strength) * (1 - strength) * m_frictions[kval.Key]; // simulation
+                float dynamicFric_move = m_frictions[kval.Key] * c_maxHeightOffset;
+                kval.Value.HeightOffset += (staticFric_move + dynamicFric_move);
+            }
         }
     }
 
     protected override bool IsBalance()
     {
-        return base.IsBalance() && m_enabled;
+        return base.IsBalance() && m_enabled && m_heightOffset < c_maxHeightOffset;
     }
 
     public override void UpdateBalance()
@@ -456,14 +555,14 @@ public class GameHexagon : Hexagon
                 }
             }
             
-            m_model.AddComponent<Rigidbody>();
-            m_model.GetComponent<MeshCollider>().isTrigger = false;
+            Model.AddComponent<Rigidbody>();
+            Model.GetComponent<MeshCollider>().isTrigger = false;
 
             m_siblingHexes.Clear();
             m_enabled = false;
             Destroy();
 
-            HexManager.Instance.UpdateAllBalance(this);
+            Globals.Instance.HexManager.UpdateAllBalance(this);
         }
     }
 }
@@ -477,6 +576,22 @@ public class SolidHexagon : Hexagon
             return Constants.c_wallHex_res;
         }
     }
+
+    public SolidHexagon(Vector3 pos) : base(pos) { }
+
+    public override float HeightOffset
+    {
+        get
+        {
+            return base.HeightOffset;
+        }
+
+        set
+        {
+            
+        }
+    }
+
 
     protected override bool IsBalance()
     {
