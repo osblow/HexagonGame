@@ -12,6 +12,15 @@ public enum GameStep
     SelectingTarget = 3,
     SelectingStrength = 4,
     Hitting = 5,
+    GameOver = 6,
+}
+
+public enum OpType
+{
+    Pass = 0,
+    White = 1,
+    Green = 2,
+    Both = 3,
 }
 
 
@@ -42,6 +51,8 @@ public class Globals : MonoBehaviour
         }
     }
 
+    public OpType OpType = OpType.Pass;
+
 
     public Canvas Canvas;
     public HexManager HexManager;
@@ -49,6 +60,8 @@ public class Globals : MonoBehaviour
 
 
     private Hexagon m_mainHex;
+    public Hexagon MainHex { get { return m_mainHex; } }
+
     private Hexagon m_curTargetHex;
     private const float c_strenghtSensitivity = 1.0f;
 
@@ -87,6 +100,16 @@ public class Globals : MonoBehaviour
     }
 
 
+
+    public void Restart()
+    {
+        GameStep = GameStep.Start;
+        m_curTargetHex = null;
+        m_mainHex = null;
+        HexManager.Restart();
+        GameStep = GameStep.SelectingMain;
+    }
+
     public void OnSelectMain(Hexagon hex)
     {
         m_mainHex = hex;
@@ -101,6 +124,11 @@ public class Globals : MonoBehaviour
         GameStep = GameStep.SelectingStrength;
     }
 
+    public void OnGameOver()
+    {
+        GameStep = GameStep.GameOver;
+    }
+
 	// Update is called once per frame
 	void Update ()
     {
@@ -110,11 +138,19 @@ public class Globals : MonoBehaviour
             {
                 float strength = GameView.StopSliderMoving() * c_strenghtSensitivity;
                 m_curTargetHex.OnHit(strength);
+                HexManager.UpdateAllBalance();
 
                 GameView.ResetSlider();
                 HexManager.OnSelectTarget(null);
-                GameStep = GameStep.SelectingTarget;
+
+                if(GameStep != GameStep.GameOver)
+                    GameStep = GameStep.SelectingTarget;
             }
+        }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
         }
 	}
 }

@@ -7,7 +7,7 @@ public class HexManager : MonoBehaviour
     private const string c_hex_res = "model/hex";
     private const float c_sqrt_3 = 1.717f;
 
-    private const float c_targetAlpha = 0.5f;
+    private const float c_targetAlpha = 0.75f;
 
     private Hexagon[][] m_hexagons;
 
@@ -240,7 +240,7 @@ public class Hexagon
 
             if(m_heightOffset >= c_maxHeightOffset)
             {
-                UpdateBalance();
+                //UpdateBalance();
             }
         }
         get
@@ -563,6 +563,12 @@ public class GameHexagon : Hexagon
             Destroy();
 
             Globals.Instance.HexManager.UpdateAllBalance(this);
+
+            // 游戏结束 
+            if (this == Globals.Instance.MainHex)
+            {
+                Globals.Instance.OnGameOver();
+            }
         }
     }
 }

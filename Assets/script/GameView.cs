@@ -13,14 +13,14 @@ public class GameView : MonoBehaviour
         s_instance = this;
     }
 
+    
 
-
-    public static string[] s_ops =
+    public static Dictionary<OpType, string> s_ops = new Dictionary<OpType, string>
     {
-        "跳过",
-        "白色",
-        "绿色",
-        "任意",
+        { OpType.Pass, "跳过" },
+        { OpType.White, "白色" },
+        { OpType.Green, "绿色" },
+        { OpType.Both, "任意" },
     };
 
     public static Dictionary<GameStep, string> s_tips = new Dictionary<GameStep, string>
@@ -31,6 +31,7 @@ public class GameView : MonoBehaviour
         { GameStep.SelectingTarget, "请选择目标格子" },
         { GameStep.SelectingStrength, "请点击锤子图标，激活力度条" },
         { GameStep.Hitting, "点击屏幕任何位置，砸啦！" },
+        { GameStep.GameOver, "游戏结束" },
     };
 
     public Text TipsText;
@@ -51,16 +52,16 @@ public class GameView : MonoBehaviour
             m_hitStrength.Update();
         }
     }
-
-
+    
     public void OnClickRandom()
     {
-        Optext.text = s_ops[UnityEngine.Random.Range(0, s_ops.Length)];
+        Globals.Instance.OpType = (OpType)UnityEngine.Random.Range(0, (int)(OpType.Both + 1));
+        Optext.text = s_ops[Globals.Instance.OpType];
     }
 
     public void OnClickRestart()
     {
-        //HexManager.Instance.Restart();
+        Globals.Instance.Restart();
     }
 
     public void OnClickHit()

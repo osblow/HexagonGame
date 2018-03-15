@@ -3,3 +3,4 @@ Temp/*
 HexagonGame.csproj
 HexagonGame.sln
 .vs/*
+build/*
