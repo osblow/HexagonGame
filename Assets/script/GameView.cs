@@ -252,6 +252,7 @@ public class HitStrength
         m_curSpeed = 0;
         m_curValue = 0;
         m_sliderObj.value = 0;
+        Globals.Instance.Hammer.Knock();
     }
 
     public void Update()
@@ -270,6 +271,7 @@ public class HitStrength
         
         m_curValue += m_curSpeed * Time.deltaTime;
         m_sliderObj.value = m_curValue;
+        Globals.Instance.Hammer.SetStrength(m_curValue);
     }
 }
 

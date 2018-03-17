@@ -73,6 +73,7 @@ public class Globals : MonoBehaviour
 
     public Canvas Canvas;
     public HexManager HexManager;
+    public Hammer Hammer;
     public GameView GameView;
     public CreateRoomView CreateRoomView;
 
@@ -142,6 +143,10 @@ public class Globals : MonoBehaviour
         }
 
         HexManager = CreateInstance<HexManager>();
+
+        Hammer = Instantiate(Resources.Load("model/hammer") as GameObject, Vector3.one * 100, Quaternion.identity)
+            .GetComponent<Hammer>();
+
         GameStep = GameStep.SelectingMain;
     }
 
@@ -149,6 +154,8 @@ public class Globals : MonoBehaviour
     {
         Destroy(GameView.gameObject);
         HexManager.ClearAll();
+        Destroy(Hammer.gameObject);
+
         CreateRoomView.gameObject.SetActive(true);
     }
 
@@ -279,6 +286,8 @@ public class Globals : MonoBehaviour
             {
                 m_curTargetHex = theHex as GameHexagon;
                 GameView.StartSliderMoving();
+
+                Hammer.transform.position = m_curTargetHex.Obj.transform.position + Vector3.up;
             }
         }
 
@@ -298,29 +307,43 @@ public class Globals : MonoBehaviour
                 //    GameView.ShowTips("GOOD !!!");
                 //}
 
-                m_curTargetHex.OnHit(strength);
-                HexManager.UpdateAllBalance();
+                // 锤子
+                Hammer.Knock();
 
-                
-                // 如果是强制砸落，则必须当前块掉落再进行下一轮
-                if (!(m_curTargetHex.IsActive() && GameConf.ForceKill))
-                {
-                    //
-                    if (GameStep != GameStep.GameOver)
-                    {
-                        GameStep = GameStep.RandomOperation;
-                        GameView.ShowWheelLater(true, 1f);
-
-                        NextPlayer(strength > 0.95f);
-                    }
-                }
+                StopAllCoroutines();
+                StartCoroutine(UpdateAllHexesLater(strength));
             }
-
+            else
+            {
+                m_curTargetHex = null;
+            }
             
             GameView.ResetSlider();
             //HexManager.OnSelectTarget(null);
-            m_curTargetHex = null;
         }
+    }
+
+    IEnumerator UpdateAllHexesLater(float lastStrength)
+    {
+        yield return new WaitForSeconds(0.1f);
+        
+        m_curTargetHex.OnHit(lastStrength);
+        HexManager.UpdateAllBalance();
+
+        // 如果是强制砸落，则必须当前块掉落再进行下一轮
+        if (!(m_curTargetHex.IsActive() && GameConf.ForceKill))
+        {
+            //
+            if (GameStep != GameStep.GameOver)
+            {
+                GameStep = GameStep.RandomOperation;
+                GameView.ShowWheelLater(true, 1f);
+
+                NextPlayer(lastStrength > 0.95f);
+            }
+        }
+
+        m_curTargetHex = null;
     }
 
     private static bool CheckColor(GameHexagon hex, OpType op)
