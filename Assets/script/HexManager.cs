@@ -18,7 +18,7 @@ public class HexManager : MonoBehaviour
         {
             for (int j = 0; j < m_hexagons[i].Length; j++)
             {
-                if (m_hexagons[i][j])
+                if (m_hexagons[i][j] != null)
                 {
                     m_hexagons[i][j].DestroyImmediate();
                 }
@@ -39,7 +39,7 @@ public class HexManager : MonoBehaviour
         {
             for (int j = 0; j < m_hexagons[i].Length; j++)
             {
-                if (m_hexagons[i][j] && m_hexagons[i][j] != exclude)
+                if (m_hexagons[i][j] != null && m_hexagons[i][j].IsActive() && m_hexagons[i][j] != exclude)
                 {
                     m_hexagons[i][j].UpdateBalance();
                 }
@@ -58,7 +58,7 @@ public class HexManager : MonoBehaviour
         {
             for (int j = 0; j < m_hexagons[i].Length; j++)
             {
-                if (m_hexagons[i][j])
+                if (m_hexagons[i][j] != null && m_hexagons[i][j].IsActive())
                 {
                     Color theColor = m_hexagons[i][j].Model.GetComponent<Renderer>().material.color;
                     theColor.a = m_hexagons[i][j] == target ? c_targetAlpha : 1f;
@@ -68,39 +68,92 @@ public class HexManager : MonoBehaviour
         }
     }
 
+    public bool HasColor(OpType op)
+    {
+        if(op == OpType.Both || op == OpType.Pass)
+        {
+            return true;
+        }
+        
+
+        for (int i = 0; i < m_hexagons.Length; i++)
+        {
+            for (int j = 0; j < m_hexagons[i].Length; j++)
+            {
+                if (m_hexagons[i][j] != null && m_hexagons[i][j].IsActive())
+                {
+                    if(m_hexagons[i][j] is GameHexagon && ((GameHexagon)m_hexagons[i][j]).OpType == op)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
 	// Use this for initialization
 	void Start () {
         Init();
 	}
-	
+
+
+
+    int m_size = 11;
+    int[] m_columnForRaws = { 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6 };
+    int[] m_columnOffsetForRaws = { 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5 };
+    void LoadConf()
+    {
+        if(Globals.Instance.GameConf.MapType == MapType.Small)
+        {
+            m_size = 7;
+        }
+        else if(Globals.Instance.GameConf.MapType == MapType.Middle)
+        {
+            m_size = 9;
+        }
+        else if(Globals.Instance.GameConf.MapType == MapType.Big)
+        {
+            m_size = 11;
+        }
+
+        m_columnForRaws = new int[m_size];
+        for (int i = 0; i < m_size; i++)
+        {
+            m_columnForRaws[i] = m_size - Mathf.Abs(m_size / 2 - i);
+            m_columnOffsetForRaws[i] = Mathf.Max(0, i - m_size / 2);
+        }
+    }
+
     void Init()
     {
-        int raw = 11;
-        int maxColumn = 11;
-        int [] columnForRaws = { 6,7,8,9,10,11,10,9,8,7,6 };
-        int[] columnOffsetForRaws = { 0,0,0,0,0,0,1,2,3,4,5};
+        LoadConf();
 
-        m_hexagons = new Hexagon[raw][];
-        for (int r = 0; r < raw; r++)
+
+        
+
+        m_hexagons = new Hexagon[m_size][];
+        for (int r = 0; r < m_size; r++)
         {
-            m_hexagons[r] = new Hexagon[maxColumn];
+            m_hexagons[r] = new Hexagon[m_size];
         }
 
 
-        int i = 0, j = columnOffsetForRaws[i];
+        int i = 0, j = m_columnOffsetForRaws[i];
         m_hexagons[i][j] = new SolidHexagon(Vector3.zero);
         for (; i < m_hexagons.Length; i++)
         {
-            j = columnOffsetForRaws[i];
+            j = m_columnOffsetForRaws[i];
             if (i > 0)
             {
                 m_hexagons[i][j] = HexFactory.CreateHexagon(HexType.Solid, m_hexagons[i - 1][j], HexDir.LeftBack, i + "-" + j);
             }
             ++j;
 
-            for (; j < columnOffsetForRaws[i] + columnForRaws[i]; j++)
+            for (; j < m_columnOffsetForRaws[i] + m_columnForRaws[i]; j++)
             {
-                if (i == 0 || i == m_hexagons.Length-1 || j == 0 || j == columnOffsetForRaws[i]+ columnForRaws[i] - 1)
+                if (i == 0 || i == m_hexagons.Length-1 || j == 0 || j == m_columnOffsetForRaws[i]+ m_columnForRaws[i] - 1)
                 {
                     m_hexagons[i][j] = HexFactory.CreateHexagon(HexType.Solid, m_hexagons[i][j - 1], HexDir.Right, i + "-" + j);
                 }
@@ -124,37 +177,37 @@ public class HexManager : MonoBehaviour
                 }
 
                 // left forward
-                if (k > 0 && x > 0 && m_hexagons[k - 1][x - 1])
+                if (k > 0 && x > 0 && m_hexagons[k - 1][x - 1] != null)
                 {
                     theHex.SetSibling(HexDir.LeftForward, m_hexagons[k - 1][x - 1]);
                 }
 
                 // right forward
-                if (k > 0 && m_hexagons[k - 1][x])
+                if (k > 0 && m_hexagons[k - 1][x] != null)
                 {
                     theHex.SetSibling(HexDir.RightForward, m_hexagons[k - 1][x]);
                 }
 
                 // left
-                if (x > 0 && m_hexagons[k][x - 1])
+                if (x > 0 && m_hexagons[k][x - 1] != null)
                 {
                     theHex.SetSibling(HexDir.Left, m_hexagons[k][x - 1]);
                 }
 
                 // right
-                if (x < m_hexagons.Length - 1 && m_hexagons[k][x + 1])
+                if (x < m_hexagons.Length - 1 && m_hexagons[k][x + 1] != null)
                 {
                     theHex.SetSibling(HexDir.Right, m_hexagons[k][x + 1]);
                 }
 
                 // left back
-                if (k < m_hexagons.Length - 1 && m_hexagons[k + 1][x])
+                if (k < m_hexagons.Length - 1 && m_hexagons[k + 1][x] != null)
                 {
                     theHex.SetSibling(HexDir.LeftBack, m_hexagons[k + 1][x]);
                 }
                 
                 // right back
-                if(k < m_hexagons.Length-1 && x < m_hexagons[k].Length - 1 && m_hexagons[k + 1][x + 1])
+                if(k < m_hexagons.Length-1 && x < m_hexagons[k].Length - 1 && m_hexagons[k + 1][x + 1] != null)
                 {
                     theHex.SetSibling(HexDir.RightBack, m_hexagons[k + 1][x + 1]);
                 }
@@ -220,10 +273,10 @@ public enum HexDir
 
 public class Hexagon
 {
-    public static implicit operator bool(Hexagon hex)
-    {
-        return hex != null && hex.Obj && hex.m_enabled;
-    }
+    //public static implicit operator bool(Hexagon hex)
+    //{
+    //    return hex != null && hex.Obj && hex.m_enabled;
+    //}
 
     protected const float c_maxHeightOffset = 1;
     protected float m_heightOffset = 0;
@@ -238,7 +291,7 @@ public class Hexagon
 
             Obj.transform.position = m_originPos - Vector3.up * m_heightOffset;
 
-            if(m_heightOffset >= c_maxHeightOffset)
+            if(m_heightOffset >= c_maxHeightOffset * 0.95f)
             {
                 //UpdateBalance();
             }
@@ -322,6 +375,11 @@ public class Hexagon
     }
 
     
+    public virtual bool IsActive()
+    {
+        return Obj && m_enabled;
+    }
+
     protected virtual bool IsBalance()
     {
         if(m_siblingHexes.ContainsKey(HexDir.Left) 
@@ -490,33 +548,41 @@ public class GameHexagon : Hexagon
         }
     }
 
+    public OpType OpType = OpType.Both;
+
     private static Color s_whiteColor = new Color(0.7f, 0.7f, 0.7f, 1.0f);
     private static Color s_greenColor = new Color(0f, 0.4f, 0, 1.0f);
 
 
     public GameHexagon(Vector3 pos) : base(pos)
     {
-        Model.GetComponent<CustomCollider>().OnClick += OnClick;
+        //Model.GetComponent<CustomCollider>().OnClick += OnClick;
+        Model.GetComponent<CustomCollider>().ParentHexagon = this;
         Model.GetComponent<MeshCollider>().isTrigger = true;
 
         // random color
-        Color randColor = Random.Range(0f, 1f) > 0.5f ? s_whiteColor : s_greenColor;
+        OpType = (OpType)Random.Range(1, 3); // between green and white
+        Color randColor = OpType == OpType.White ? s_whiteColor : s_greenColor;
         Model.GetComponent<Renderer>().material.color = randColor;
     }
 
-    public void OnClick()
+    //public void OnClick()
+    //{
+    //    if (Globals.Instance.GameStep == GameStep.SelectingMain)
+    //    {
+    //        Model.GetComponent<Renderer>().material.color = Color.red;
+    //        Globals.Instance.OnSelectMain(this);
+    //    }
+    //    else
+    //    {
+    //        Globals.Instance.OnSelectTarget(this);
+    //        //m_enabled = false;
+    //        //UpdateBalance();
+    //    }
+    //}
+    public void OnBecomeMain()
     {
-        if (Globals.Instance.GameStep == GameStep.SelectingMain)
-        {
-            Model.GetComponent<Renderer>().material.color = Color.red;
-            Globals.Instance.OnSelectMain(this);
-        }
-        else
-        {
-            Globals.Instance.OnSelectTarget(this);
-            //m_enabled = false;
-            //UpdateBalance();
-        }
+        Model.GetComponent<Renderer>().material.color = Color.red;
     }
 
     public override void OnHit(float strength)
@@ -529,18 +595,18 @@ public class GameHexagon : Hexagon
 
         foreach (KeyValuePair<HexDir, Hexagon> kval in m_siblingHexes)
         {
-            if (kval.Value)
+            if (kval.Value != null && kval.Value.IsActive())
             {
                 float staticFric_move = (1 - strength) * (1 - strength) * m_frictions[kval.Key]; // simulation
                 float dynamicFric_move = m_frictions[kval.Key] * c_maxHeightOffset;
-                kval.Value.HeightOffset += (staticFric_move + dynamicFric_move);
+                kval.Value.HeightOffset += Mathf.Min(staticFric_move + dynamicFric_move, strength * c_maxHeightOffset);
             }
         }
     }
 
     protected override bool IsBalance()
     {
-        return base.IsBalance() && m_enabled && m_heightOffset < c_maxHeightOffset;
+        return base.IsBalance() && m_enabled && m_heightOffset < c_maxHeightOffset * 0.95f;
     }
 
     public override void UpdateBalance()
@@ -549,12 +615,21 @@ public class GameHexagon : Hexagon
         {
             foreach (KeyValuePair<HexDir, Hexagon> kval in m_siblingHexes)
             {
-                if (kval.Value)
+                if (kval.Value != null && kval.Value.IsActive())
                 {
                     kval.Value.RemoveSibling(Hexagon.GetOppositeDir(kval.Key));
                 }
             }
-            
+
+            // 再分别调用邻居的刷新，如果有死亡将一起下落
+            foreach (KeyValuePair<HexDir, Hexagon> kval in m_siblingHexes)
+            {
+                if (kval.Value != null && kval.Value.IsActive())
+                {
+                    kval.Value.UpdateBalance();
+                }
+            }
+
             Model.AddComponent<Rigidbody>();
             Model.GetComponent<MeshCollider>().isTrigger = false;
 
@@ -562,7 +637,7 @@ public class GameHexagon : Hexagon
             m_enabled = false;
             Destroy();
 
-            Globals.Instance.HexManager.UpdateAllBalance(this);
+            //Globals.Instance.HexManager.UpdateAllBalance(this);
 
             // 游戏结束 
             if (this == Globals.Instance.MainHex)

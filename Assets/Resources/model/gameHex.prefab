@@ -19,7 +19,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4051215734036648}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: hexagon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -38,7 +38,7 @@ GameObject:
   - component: {fileID: 23715743804091182}
   - component: {fileID: 64608337082613414}
   - component: {fileID: 114705164079252790}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Cylinder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -53,7 +53,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4166526716804694}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: gameHex
   m_TagString: Untagged
   m_Icon: {fileID: 0}

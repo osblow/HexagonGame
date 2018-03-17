@@ -5,7 +5,9 @@ using System;
 
 public class CustomCollider : MonoBehaviour
 {
-    public event Action OnClick;
+    //public event Action OnClick;
+
+    public Hexagon ParentHexagon;
 
 
 	// Use this for initialization
@@ -20,17 +22,17 @@ public class CustomCollider : MonoBehaviour
 		
 	}
 
-    private void OnMouseDown()
-    {
-        if(Globals.Instance.GameStep != GameStep.SelectingTarget &&
-            Globals.Instance.GameStep != GameStep.SelectingMain)
-        {
-            return;
-        }
+    //private void OnMouseDown()
+    //{
+    //    if(Globals.Instance.GameStep != GameStep.SelectingTarget &&
+    //        Globals.Instance.GameStep != GameStep.SelectingMain)
+    //    {
+    //        return;
+    //    }
 
-        if(OnClick != null)
-        {
-            OnClick();
-        }
-    }
+    //    if(OnClick != null)
+    //    {
+    //        OnClick();
+    //    }
+    //}
 }
