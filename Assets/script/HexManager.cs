@@ -12,7 +12,7 @@ public class HexManager : MonoBehaviour
     private Hexagon[][] m_hexagons;
 
 
-    public void Restart()
+    public void ClearAll()
     {
         for (int i = 0; i < m_hexagons.Length; i++)
         {
@@ -24,6 +24,11 @@ public class HexManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void Restart()
+    {
+        ClearAll();
 
         Init();
     }
@@ -47,26 +52,26 @@ public class HexManager : MonoBehaviour
         }
     }
 
-    public void OnSelectTarget(Hexagon target)
-    {
-        if (m_hexagons == null)
-        {
-            return;
-        }
+    //public void OnSelectTarget(Hexagon target)
+    //{
+    //    if (m_hexagons == null)
+    //    {
+    //        return;
+    //    }
 
-        for (int i = 0; i < m_hexagons.Length; i++)
-        {
-            for (int j = 0; j < m_hexagons[i].Length; j++)
-            {
-                if (m_hexagons[i][j] != null && m_hexagons[i][j].IsActive())
-                {
-                    Color theColor = m_hexagons[i][j].Model.GetComponent<Renderer>().material.color;
-                    theColor.a = m_hexagons[i][j] == target ? c_targetAlpha : 1f;
-                    m_hexagons[i][j].Model.GetComponent<Renderer>().material.color = theColor;
-                }
-            }
-        }
-    }
+    //    for (int i = 0; i < m_hexagons.Length; i++)
+    //    {
+    //        for (int j = 0; j < m_hexagons[i].Length; j++)
+    //        {
+    //            if (m_hexagons[i][j] != null && m_hexagons[i][j].IsActive())
+    //            {
+    //                Color theColor = m_hexagons[i][j].Model.GetComponent<Renderer>().material.color;
+    //                theColor.a = m_hexagons[i][j] == target ? c_targetAlpha : 1f;
+    //                m_hexagons[i][j].Model.GetComponent<Renderer>().material.color = theColor;
+    //            }
+    //        }
+    //    }
+    //}
 
     public bool HasColor(OpType op)
     {

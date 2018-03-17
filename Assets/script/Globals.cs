@@ -145,6 +145,13 @@ public class Globals : MonoBehaviour
         GameStep = GameStep.SelectingMain;
     }
 
+    public void ExitGame()
+    {
+        Destroy(GameView.gameObject);
+        HexManager.ClearAll();
+        CreateRoomView.gameObject.SetActive(true);
+    }
+
     public void Restart()
     {
         m_curTargetHex = null;
@@ -311,7 +318,7 @@ public class Globals : MonoBehaviour
 
             
             GameView.ResetSlider();
-            HexManager.OnSelectTarget(null);
+            //HexManager.OnSelectTarget(null);
             m_curTargetHex = null;
         }
     }

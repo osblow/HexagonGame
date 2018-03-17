@@ -113,6 +113,12 @@ public class GameView : MonoBehaviour
         m_randomWheel.SetActive(true);
     }
 
+
+    public void OnClickExit()
+    {
+        Globals.Instance.ExitGame();
+    }
+
     public void OnClickRestart()
     {
         Globals.Instance.Restart();
