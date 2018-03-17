@@ -165,6 +165,9 @@ public class Globals : MonoBehaviour
         m_mainHex = null;
         HexManager.Restart();
         CurPlayer = 1;
+
+        Hammer.transform.position = Vector3.one * 100;
+        GameView.ShowWheel(false);
         GameView.SetCurPlayer(CurPlayer);
 
         GameStep = GameStep.SelectingMain;
