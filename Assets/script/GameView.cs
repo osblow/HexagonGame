@@ -103,7 +103,7 @@ public class GameView : MonoBehaviour
                 break;
             }
         }
-        Debug.Log(rand + " " + Globals.Instance.OpType);
+        //Debug.Log(rand + " " + Globals.Instance.OpType);
 
 
         //Globals.Instance.OpType = (OpType)UnityEngine.Random.Range(0, (int)(OpType.Both + 1));
@@ -152,7 +152,6 @@ public class GameView : MonoBehaviour
     public float StopSliderMoving()
     {
         m_hitStrength.SetEnabled(false);
-        Debug.Log(m_hitStrength.Value);
 
         return m_hitStrength.Value;
     }
@@ -302,7 +301,7 @@ public class RandomWheel
     public void SetOp(OpType op)
     {
         float randomAngle = Random.Range(s_opAngles[op][0], s_opAngles[op][1]);
-        Debug.Log("Angle= " + randomAngle);
+        //Debug.Log("Angle= " + randomAngle);
 
         m_rotTotalAngle = randomAngle + c_extraRotAngle;
         //m_rotTotalTime = Mathf.Sqrt(m_rotTotalAngle / c_accelerate);

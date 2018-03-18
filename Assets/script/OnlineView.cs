@@ -1,16 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class OnlineView : MonoBehaviour {
+public class OnlineView : MonoBehaviour
+{
+    public Transform RoomListRoot;
+    public GameObject RoomItemTpl;
 
-	// Use this for initialization
-	void Start () {
-		
-	}
+    public InputField RoomName;
 	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+
+    public void OnClickCreate()
+    {
+        string roomName = RoomName.text;
+        Debug.Log("创建房间: " + roomName);
+
+        gameObject.SetActive(false);
+        Globals.Instance.CreateGameUI();
+    }
 }

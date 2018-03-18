@@ -74,9 +74,14 @@ public class Globals : MonoBehaviour
     public Canvas Canvas;
     public HexManager HexManager;
     public Hammer Hammer;
+
+    public MainView MainView;
     public GameView GameView;
+    public OnlineView OnlineView;
     public CreateRoomView CreateRoomView;
 
+
+    public bool IsOnline = false;
 
     private GameHexagon m_mainHex;
     public GameHexagon MainHex { get { return m_mainHex; } }
@@ -89,7 +94,7 @@ public class Globals : MonoBehaviour
     {
         Init();
 
-        StartCoroutine(BroadcastTest());
+        //StartCoroutine(BroadcastTest());
 	}
 
     IEnumerator BroadcastTest()
@@ -104,7 +109,11 @@ public class Globals : MonoBehaviour
     private void Init()
     {
         GameStep = GameStep.NotStart;
-        CreateGameUI();
+
+        GameObject uiObj = Instantiate(Resources.Load("ui/MainView") as GameObject);
+        uiObj.transform.SetParent(Canvas.transform, false);
+        MainView = uiObj.GetComponent<MainView>();
+        //CreateGameUI();
     }
 	
     private T CreateInstance<T>()
@@ -119,7 +128,14 @@ public class Globals : MonoBehaviour
         return t;
     }
 
-    private void CreateGameUI()
+    public void CreateOnlineView()
+    {
+        GameObject uiObj = Instantiate(Resources.Load("ui/OnlineView") as GameObject);
+        uiObj.transform.SetParent(Canvas.transform, false);
+        OnlineView = uiObj.GetComponent<OnlineView>();
+    }
+
+    public void CreateGameUI()
     {
         GameObject uiObj = Instantiate(Resources.Load("ui/CreateRoomView") as GameObject);
         uiObj.transform.SetParent(Canvas.transform, false);

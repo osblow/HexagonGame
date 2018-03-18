@@ -4,15 +4,19 @@ using UnityEngine;
 
 public class MainView : MonoBehaviour
 {
-	// Use this for initialization
-	void Start ()
+	public void OnClickOffline()
     {
-		
-	}
-	
-	// Update is called once per frame
-	void Update ()
+        Globals.Instance.IsOnline = false;
+
+        gameObject.SetActive(false);
+        Globals.Instance.CreateGameUI();
+    }
+
+    public void OnClickOnline()
     {
-		
-	}
+        Globals.Instance.IsOnline = true;
+
+        gameObject.SetActive(false);
+        Globals.Instance.CreateOnlineView();
+    }
 }

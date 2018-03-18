@@ -12,9 +12,9 @@ public class CreateRoomView : MonoBehaviour
 
 	public void OnClickConfirm()
     {
-        Debug.Log((MapType)(MapOption.value));
-        Debug.Log(MemCountOption.value+2);
-        Debug.Log(ForceToggle.isOn);
+        //Debug.Log((MapType)(MapOption.value));
+        //Debug.Log(MemCountOption.value+2);
+        //Debug.Log(ForceToggle.isOn);
 
         GameConf conf = new GameConf();
         conf.MapType = (MapType)MapOption.value;
