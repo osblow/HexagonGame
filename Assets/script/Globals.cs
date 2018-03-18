@@ -88,7 +88,18 @@ public class Globals : MonoBehaviour
     void Start ()
     {
         Init();
+
+        StartCoroutine(BroadcastTest());
 	}
+
+    IEnumerator BroadcastTest()
+    {
+        BroadCast.Start();
+        yield return new WaitForSeconds(1.0f);
+        BroadCastReciever.Start();
+    }
+
+
 
     private void Init()
     {

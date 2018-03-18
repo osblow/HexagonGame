@@ -4,3 +4,4 @@ HexagonGame.csproj
 HexagonGame.sln
 .vs/*
 build/*
+build_android/hexgame.apk
