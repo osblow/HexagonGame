@@ -283,8 +283,8 @@ public class RandomWheel
         { OpType.Both, new float[]{ 180f, 270f } },
         { OpType.Pass, new float[]{ 270f, 360f } },
     };
-    private const float c_accelerate = 1f;
-    private const float c_extraRotAngle = 3240f;
+    private const float c_accelerate = 6f;
+    private const float c_extraRotAngle = 1080f;
 
     private RectTransform m_wheel;
     private bool m_isActive = false;

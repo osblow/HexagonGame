@@ -334,7 +334,7 @@ public class Hexagon
         // friction
         for (HexDir i = HexDir.Left; i <= HexDir.LeftBack; i++)
         {
-            m_frictions.Add(i, Random.Range(0, 0.2f));
+            m_frictions.Add(i, Random.Range(0.1f, 0.15f));
         }
     }
 
@@ -596,15 +596,17 @@ public class GameHexagon : Hexagon
         {
             return;
         }
-        HeightOffset += strength * c_maxHeightOffset;
+        // 为了设初始值，将力度从0-1缩放平移到0.1-1
+        float scaledStrength = 0.1f + strength * 0.9f;
+        HeightOffset += scaledStrength * c_maxHeightOffset;
 
         foreach (KeyValuePair<HexDir, Hexagon> kval in m_siblingHexes)
         {
             if (kval.Value != null && kval.Value.IsActive())
             {
-                float staticFric_move = (1 - strength) * (1 - strength) * m_frictions[kval.Key]; // simulation
-                float dynamicFric_move = m_frictions[kval.Key] * c_maxHeightOffset;
-                kval.Value.HeightOffset += Mathf.Min(staticFric_move + dynamicFric_move, strength * c_maxHeightOffset);
+                //float staticFric_move = (1 - strength) * (1 - strength) * m_frictions[kval.Key]; // simulation
+                float dynamicFric_move = (1 - strength) * m_frictions[kval.Key] * c_maxHeightOffset;
+                kval.Value.HeightOffset += Mathf.Min(/*staticFric_move + */dynamicFric_move, scaledStrength * c_maxHeightOffset);
             }
         }
     }

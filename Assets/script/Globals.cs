@@ -87,6 +87,7 @@ public class Globals : MonoBehaviour
     public GameHexagon MainHex { get { return m_mainHex; } }
 
     private GameHexagon m_curTargetHex;
+    private GameHexagon m_singleTargetHex; // 强制模式下，每轮必须砸掉一个且是唯一一个，这里保存第一次砸中的格子
     private const float c_strenghtSensitivity = 1.0f;
 
     // Use this for initialization
@@ -189,6 +190,7 @@ public class Globals : MonoBehaviour
     public void Restart()
     {
         m_curTargetHex = null;
+        m_singleTargetHex = null;
         m_mainHex = null;
         HexManager.Restart();
         CurPlayer = 1;
@@ -312,9 +314,18 @@ public class Globals : MonoBehaviour
             }
 
             GameHexagon theHex = GetHittingHex();
+
+            // 在强制模式下，必须砸同一个格子
+            if(GameConf.ForceKill && m_singleTargetHex != null && m_singleTargetHex != theHex)
+            {
+                GameView.ShowTips("必须砸同一个格子！");
+                return;
+            }
+
             if (theHex != null && theHex != m_mainHex && CheckColor(theHex, OpType))
             {
-                m_curTargetHex = theHex as GameHexagon;
+                m_curTargetHex = theHex;
+                m_singleTargetHex = theHex;
                 GameView.StartSliderMoving();
 
                 Hammer.transform.position = m_curTargetHex.Obj.transform.position + Vector3.up;
@@ -346,6 +357,7 @@ public class Globals : MonoBehaviour
             else
             {
                 m_curTargetHex = null;
+                m_singleTargetHex = null;
             }
             
             GameView.ResetSlider();
@@ -371,6 +383,7 @@ public class Globals : MonoBehaviour
 
                 NextPlayer(lastStrength > 0.95f);
             }
+            m_singleTargetHex = null;
         }
 
         m_curTargetHex = null;
