@@ -6,25 +6,25 @@ using System.Threading;
 
 class BroadCast
 {
-    private static Socket sock;
-    private static IPEndPoint[] ieps;
-    private static byte[] data;
-    public static void Start()
+    private static Socket s_sock;
+    private static IPEndPoint[] s_ieps;
+    private static GameConf s_conf;
+
+
+    public static void Start(GameConf conf)
     {
-        sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram,
+        s_conf = conf;
+
+        s_sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram,
         ProtocolType.Udp);
         //255.255.255.255
-        ieps = new IPEndPoint[BroadConstant.BroadcastPorts.Length];
-        for (int i = 0; i < ieps.Length; i++)
+        s_ieps = new IPEndPoint[BroadConstant.BroadcastPorts.Length];
+        for (int i = 0; i < s_ieps.Length; i++)
         {
-            ieps[i] = new IPEndPoint(IPAddress.Broadcast, BroadConstant.BroadcastPorts[i]);
+            s_ieps[i] = new IPEndPoint(IPAddress.Broadcast, BroadConstant.BroadcastPorts[i]);
         }
-       
-        string hostname = Dns.GetHostName();
-        data = Encoding.ASCII.GetBytes(hostname);
 
-        sock.SetSocketOption(SocketOptionLevel.Socket,
-        SocketOptionName.Broadcast, 1);
+        s_sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
 
         Thread t = new Thread(BroadcastMessage);
         t.Start();
@@ -35,9 +35,10 @@ class BroadCast
     {
         while (true)
         {
-            for (int i = 0; i < ieps.Length; i++)
+            for (int i = 0; i < s_ieps.Length; i++)
             {
-                sock.SendTo(data, ieps[i]);
+                UnityEngine.Debug.Log("send to port " + s_ieps[i]);
+                s_sock.SendTo(GameConf.Pack(s_conf), s_ieps[i]);
             }
             Thread.Sleep(2000);
         }

@@ -210,8 +210,10 @@ MonoBehaviour:
   Canvas: {fileID: 1575075033}
   HexManager: {fileID: 0}
   Hammer: {fileID: 0}
+  AsyncInvokeMng: {fileID: 0}
   MainView: {fileID: 0}
   GameView: {fileID: 0}
+  OnlineView: {fileID: 0}
   CreateRoomView: {fileID: 0}
   IsOnline: 0
 --- !u!4 &78812627
@@ -954,6 +956,40 @@ Prefab:
     - target: {fileID: 1706911895565566, guid: 60bfcd492d6ad6943a7f94277874e4cc, type: 2}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1013866584038376, guid: 60bfcd492d6ad6943a7f94277874e4cc, type: 2}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 224107592044755438, guid: 60bfcd492d6ad6943a7f94277874e4cc,
+        type: 2}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 224107592044755438, guid: 60bfcd492d6ad6943a7f94277874e4cc,
+        type: 2}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 224107592044755438, guid: 60bfcd492d6ad6943a7f94277874e4cc,
+        type: 2}
+      propertyPath: m_AnchoredPosition.x
+      value: 400
+      objectReference: {fileID: 0}
+    - target: {fileID: 224107592044755438, guid: 60bfcd492d6ad6943a7f94277874e4cc,
+        type: 2}
+      propertyPath: m_AnchoredPosition.y
+      value: -50
+      objectReference: {fileID: 0}
+    - target: {fileID: 224107592044755438, guid: 60bfcd492d6ad6943a7f94277874e4cc,
+        type: 2}
+      propertyPath: m_SizeDelta.x
+      value: 800
+      objectReference: {fileID: 0}
+    - target: {fileID: 224107592044755438, guid: 60bfcd492d6ad6943a7f94277874e4cc,
+        type: 2}
+      propertyPath: m_SizeDelta.y
+      value: 100
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 60bfcd492d6ad6943a7f94277874e4cc, type: 2}

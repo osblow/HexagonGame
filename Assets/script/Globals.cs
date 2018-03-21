@@ -32,9 +32,48 @@ public enum MapType
 
 public class GameConf
 {
+    public string Name = "";
+
     public MapType MapType = MapType.Small;
     public int MemCount = 2;
     public bool ForceKill = true;
+
+
+    public static byte[] Pack(GameConf conf)
+    {
+        // namelen,name,map,memcount,force
+
+        List<byte> results = new List<byte>();
+        byte[] nameBytes = System.Text.Encoding.UTF8.GetBytes(conf.Name);
+
+        results.AddRange(System.BitConverter.GetBytes(nameBytes.Length));
+        results.AddRange(nameBytes);
+
+        results.Add((byte)conf.MapType);
+        results.Add((byte)conf.MemCount);
+        results.Add((byte)(conf.ForceKill ? 1 : 0));
+
+        return results.ToArray();
+    }
+
+    public static GameConf Unpack(byte[] data)
+    {
+        if (data == null || data.Length < 3)
+        {
+            return null;
+        }
+
+        GameConf conf = new GameConf();
+
+        int nameLen = System.BitConverter.ToInt32(data, 0);
+        conf.Name = System.Text.Encoding.UTF8.GetString(data, 4, nameLen);
+
+        conf.MapType = (MapType)data[4 + nameLen];
+        conf.MemCount = data[4 + nameLen + 1];
+        conf.ForceKill = data[4 + nameLen + 2] == 1;
+
+        return conf;
+    }
 }
 
 
@@ -47,6 +86,7 @@ public class Globals : MonoBehaviour
     {
         s_instance = this;
     }
+    
 
     private GameStep m_gameStep;
     public GameStep GameStep
@@ -75,6 +115,7 @@ public class Globals : MonoBehaviour
     public HexManager HexManager;
     public Hammer Hammer;
 
+    public AsyncInvokeMng AsyncInvokeMng;
     public MainView MainView;
     public GameView GameView;
     public OnlineView OnlineView;
@@ -93,6 +134,8 @@ public class Globals : MonoBehaviour
     // Use this for initialization
     void Start ()
     {
+        AsyncInvokeMng = CreateInstance<AsyncInvokeMng>();
+
         Init();
 	}
 
@@ -236,7 +279,7 @@ public class Globals : MonoBehaviour
         GameStep = GameStep.Hitting;
         GameView.ShowWheel(false);
     }
-
+    
     private void NextPlayer(bool isGood = false)
     {
         ++CurPlayer;

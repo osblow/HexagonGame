@@ -8,8 +8,9 @@ using System.Net.NetworkInformation;
 class BroadCastReciever
 {
     static Socket sock;
-
     static int cur_tryPortIndex = 1;
+
+    public static Action<string, int, GameConf> OnGetConf = null;
 
     public static void Start(int port=9050)
     {
@@ -20,7 +21,6 @@ class BroadCastReciever
             IPEndPoint iep =
             new IPEndPoint(IPAddress.Any, port);
             sock.Bind(iep);
-            Debug.Log("Ready to receive…");
 
             Thread t = new Thread(Recieve);
             t.Start();
@@ -46,12 +46,19 @@ class BroadCastReciever
     {
         while (true)
         {
+            Debug.Log("Ready to receive…");
+
             byte[] data = new byte[1024];
             EndPoint ep = new IPEndPoint(IPAddress.Any, 0);
             int recv = sock.ReceiveFrom(data, ref ep);
-            string stringData = Encoding.ASCII.GetString(data, 0, recv);
+            if(OnGetConf != null)
+            {
+                Globals.Instance.AsyncInvokeMng.Events.Add(
+                    delegate { OnGetConf(((IPEndPoint)ep).Address.ToString(), ((IPEndPoint)ep).Port, GameConf.Unpack(data)); });
+                
+            }
 
-            Debug.LogFormat("received: {0} from: {1}:{2}", stringData, ((IPEndPoint)ep).Address, ((IPEndPoint)ep).Port);
+            Debug.LogFormat("received: {0}bytes from: {1}:{2}", data.Length, ((IPEndPoint)ep).Address, ((IPEndPoint)ep).Port);
             Thread.Sleep(2000);
         }
     }
