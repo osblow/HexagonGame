@@ -14,11 +14,11 @@ public class MainView : MonoBehaviour
 
     public void OnClickOnline()
     {
-        return;
-
         Globals.Instance.IsOnline = true;
 
         gameObject.SetActive(false);
         Globals.Instance.CreateOnlineView();
+
+        BroadCastReciever.Start();
     }
 }

@@ -7,15 +7,19 @@ using System.Threading;
 class BroadCast
 {
     private static Socket sock;
-    private static IPEndPoint iep1;
+    private static IPEndPoint[] ieps;
     private static byte[] data;
     public static void Start()
     {
         sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram,
         ProtocolType.Udp);
         //255.255.255.255
-        iep1 = new IPEndPoint(IPAddress.Broadcast, 9050);
-
+        ieps = new IPEndPoint[BroadConstant.BroadcastPorts.Length];
+        for (int i = 0; i < ieps.Length; i++)
+        {
+            ieps[i] = new IPEndPoint(IPAddress.Broadcast, BroadConstant.BroadcastPorts[i]);
+        }
+       
         string hostname = Dns.GetHostName();
         data = Encoding.ASCII.GetBytes(hostname);
 
@@ -31,7 +35,10 @@ class BroadCast
     {
         while (true)
         {
-            sock.SendTo(data, iep1);
+            for (int i = 0; i < ieps.Length; i++)
+            {
+                sock.SendTo(data, ieps[i]);
+            }
             Thread.Sleep(2000);
         }
 

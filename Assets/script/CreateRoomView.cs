@@ -15,12 +15,18 @@ public class CreateRoomView : MonoBehaviour
         //Debug.Log((MapType)(MapOption.value));
         //Debug.Log(MemCountOption.value+2);
         //Debug.Log(ForceToggle.isOn);
+        if (Globals.Instance.IsOnline)
+        {
+            BroadCast.Start();
+        }
+        else
+        {
+            GameConf conf = new GameConf();
+            conf.MapType = (MapType)MapOption.value;
+            conf.MemCount = MemCountOption.value + 2;
+            conf.ForceKill = ForceToggle.isOn;
 
-        GameConf conf = new GameConf();
-        conf.MapType = (MapType)MapOption.value;
-        conf.MemCount = MemCountOption.value + 2;
-        conf.ForceKill = ForceToggle.isOn;
-
-        Globals.Instance.EnterGame(conf);
+            Globals.Instance.EnterGame(conf);
+        }
     }
 }
