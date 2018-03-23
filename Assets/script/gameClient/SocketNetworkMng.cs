@@ -2,12 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 using System.Net;
 using System.Net.Sockets;
 
 
-namespace Osblow.Game
+namespace Osblow.Net.Client
 {
     public class SocketNetworkMng : MonoBehaviour
     {
@@ -400,23 +399,5 @@ namespace Osblow.Game
         //        return true;
         //    }
         //}
-    }
-
-    public class TCPState
-    {
-        public const int BuffSize = 65536;
-        public byte[] Buffer = new byte[65536];
-
-        private Socket socket = null;
-
-        public Socket Socket
-        {
-            get { return socket; }
-        }
-
-        public TCPState(Socket socket)
-        {
-            this.socket = socket;
-        }
     }
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 using System.IO;
 using System;
 
-namespace Osblow.Game
+namespace Osblow.Net.Client
 {
     public class CmdRequest
     {

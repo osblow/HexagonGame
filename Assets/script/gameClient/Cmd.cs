@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Osblow.Game
+namespace Osblow.Net
 {
     public class Cmd
     {
