@@ -53,8 +53,8 @@ class BroadCastReciever
             int recv = sock.ReceiveFrom(data, ref ep);
             if(OnGetConf != null)
             {
-                Globals.Instance.AsyncInvokeMng.Events.Add(
-                    delegate { OnGetConf(((IPEndPoint)ep).Address.ToString(), ((IPEndPoint)ep).Port, GameConf.Unpack(data)); });
+                //Globals.Instance.AsyncInvokeMng.Events.Add(
+                //    delegate { OnGetConf(((IPEndPoint)ep).Address.ToString(), ((IPEndPoint)ep).Port, GameConf.Unpack(data)); });
                 
             }
 

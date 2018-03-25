@@ -5,3 +5,5 @@ HexagonGame.sln
 .vs/*
 build/*
 build_android/hexgame.apk
+obj/*
+HexagonGame.userprefs

@@ -25,7 +25,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &1019409747108446
 GameObject:
   m_ObjectHideFlags: 1
@@ -255,7 +255,6 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 224422226307876984}
-  - component: {fileID: 114408095352101022}
   m_Layer: 5
   m_Name: OnlineView
   m_TagString: Untagged
@@ -534,20 +533,6 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.ScrollRect+ScrollRectEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
---- !u!114 &114408095352101022
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1706911895565566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e2570a80e3e0452498e8690893e259f2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  RoomListRoot: {fileID: 224384985565547828}
-  RoomItemTpl: {fileID: 1013866584038376}
-  RoomName: {fileID: 114951473005862620}
 --- !u!114 &114410231888432942
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -817,18 +802,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 114845494259518882}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 114408095352101022}
-        m_MethodName: OnClickCreate
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
 --- !u!114 &114738158046071774
@@ -1185,10 +1159,10 @@ RectTransform:
   m_Father: {fileID: 224384985565547828}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 400, y: -50}
-  m_SizeDelta: {x: 800, y: 100}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &224220426149658136
 RectTransform:

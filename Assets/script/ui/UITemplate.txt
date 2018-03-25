@@ -1,0 +1,23 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace Osblow
+{
+    class $itemname$ : UIBase
+    {
+        public override string PrefabPath
+        {
+            get
+            {
+                return "";
+            }
+        }
+
+        public override void Start()
+        {
+            
+        }
+    }
+}
