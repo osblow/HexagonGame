@@ -578,7 +578,6 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 224915768756448704}
-  - component: {fileID: 114393847487868010}
   m_Layer: 5
   m_Name: CreateRoomView
   m_TagString: Untagged
@@ -772,18 +771,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 114473849760593132}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 114393847487868010}
-        m_MethodName: OnClickConfirm
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
 --- !u!114 &114276319175257634
@@ -1214,20 +1202,6 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.Toggle+ToggleEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
   m_IsOn: 1
---- !u!114 &114393847487868010
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1895864568823990}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b33cf4466ac69cc458501ba77a66e630, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MapOption: {fileID: 114334181381043944}
-  MemCountOption: {fileID: 114351822064979910}
-  ForceToggle: {fileID: 114620669158163690}
 --- !u!114 &114399095451815480
 MonoBehaviour:
   m_ObjectHideFlags: 1

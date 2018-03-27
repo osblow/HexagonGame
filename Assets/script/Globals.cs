@@ -76,387 +76,687 @@ public class GameConf
     }
 }
 
-
-public class Globals : MonoBehaviour
+namespace Osblow
 {
-    public static Globals Instance { get { return s_instance; } }
-    private static Globals s_instance;
-
-    private void Awake()
+    public class Globals : ObjectBase
     {
-        s_instance = this;
-    }
-    
-
-    private GameStep m_gameStep;
-    public GameStep GameStep
-    {
-        set
+        private static Globals s_instance;
+        public static Globals Instance
         {
-            m_gameStep = value;
-            if(GameView != null)
+            get
             {
-                GameView.ShowTips();
+                if (s_instance == null)
+                {
+                    s_instance = new Globals();
+                }
+                return s_instance;
             }
         }
-        get
+
+        private Globals() { }
+
+        
+        private GameStep m_gameStep;
+        public GameStep GameStep
         {
-            return m_gameStep;
+            set
+            {
+                m_gameStep = value;
+                Broadcast(MsgType.OnGameStepChanged);
+                //if (GameView != null)
+                //{
+                //    GameView.ShowTips();
+                //}
+            }
+            get
+            {
+                return m_gameStep;
+            }
         }
-    }
+        
 
-    public OpType OpType = OpType.Pass;
-    public int CurPlayer = 1;
+        public OpType OpType = OpType.Pass;
+        public int CurPlayer = 1;
 
-    public GameConf GameConf;
-
-
-    public Canvas Canvas;
-    public HexManager HexManager;
-    public Hammer Hammer;
-
-    public AsyncInvokeMng AsyncInvokeMng;
-    public MainView MainView;
-    public GameView GameView;
-    public OnlineView OnlineView;
-    public CreateRoomView CreateRoomView;
+        public GameConf GameConf;
 
 
-    public bool IsOnline = false;
+        public PrefabPool PrefabPool;
+        public UIManager UIManager;
+        public CoroutineManager CoroutineManager;
+        public AsyncInvokeMng AsyncInvokeMng;
+        public HexManager HexManager;
 
-    private GameHexagon m_mainHex;
-    public GameHexagon MainHex { get { return m_mainHex; } }
-
-    private GameHexagon m_curTargetHex;
-    private GameHexagon m_singleTargetHex; // 强制模式下，每轮必须砸掉一个且是唯一一个，这里保存第一次砸中的格子
-    private const float c_strenghtSensitivity = 1.0f;
-
-    // Use this for initialization
-    void Start ()
-    {
-        AsyncInvokeMng = CreateInstance<AsyncInvokeMng>();
-
-        Init();
-	}
+        public Hammer Hammer;
 
 
-    private void Init()
-    {
-        GameStep = GameStep.NotStart;
-
-        GameObject uiObj = Instantiate(Resources.Load("ui/MainView") as GameObject);
-        uiObj.transform.SetParent(Canvas.transform, false);
-        MainView = uiObj.GetComponent<MainView>();
-        //CreateGameUI();
-    }
-	
-    private T CreateInstance<T>()
-        where T : MonoBehaviour
-    {
-        T t;
-        GameObject obj = new GameObject();
-        obj.transform.SetParent(transform);
-        t = obj.AddComponent<T>();
-        t.name = typeof(T).ToString();
-
-        return t;
-    }
-
-    public void CreateOnlineView()
-    {
-        GameObject uiObj = Instantiate(Resources.Load("ui/OnlineView") as GameObject);
-        uiObj.transform.SetParent(Canvas.transform, false);
-        OnlineView = uiObj.GetComponent<OnlineView>();
-    }
-
-    public void CreateGameUI()
-    {
-        GameObject uiObj = Instantiate(Resources.Load("ui/CreateRoomView") as GameObject);
-        uiObj.transform.SetParent(Canvas.transform, false);
-        CreateRoomView = uiObj.GetComponent<CreateRoomView>();
-    }
-
-    public void EnterGame(GameConf conf)
-    {
-        GameConf = conf;
-        CurPlayer = 1;
-
-        CreateRoomView.gameObject.SetActive(false);
-
-        GameObject uiObj = Instantiate(Resources.Load("ui/GameView") as GameObject);
-        uiObj.transform.SetParent(Canvas.transform, false);
-        GameView = uiObj.GetComponent<GameView>();
-        GameView.SetRoomConfig(conf);
-        GameView.SetCurPlayer(CurPlayer);
-
-        // camera
-        if(conf.MapType == MapType.Small)
+        public override void Start()
         {
-            Camera.main.transform.position = new Vector3(1.57f, 9.07f, -5.82f);
-        }
-        else if(conf.MapType == MapType.Middle)
-        {
-            Camera.main.transform.position = new Vector3(2.18f, 9.07f, -7.01f);
-        }
-        else if(conf.MapType == MapType.Big)
-        {
-            Camera.main.transform.position = new Vector3(2.58f, 9.07f, -8.2f);
+            PrefabPool = new PrefabPool();
+            UIManager = AddChild(new UIManager()) as UIManager;
+            CoroutineManager = new GameObject("Coroutine Manager").AddComponent<CoroutineManager>(); // temp
+            AsyncInvokeMng = AddChild(new AsyncInvokeMng()) as AsyncInvokeMng;
+
+            GameStep = GameStep.NotStart;
+            UIManager.CreateUI<UIMain>();
         }
 
-        HexManager = CreateInstance<HexManager>();
-
-        Hammer = Instantiate(Resources.Load("model/hammer") as GameObject, Vector3.one * 100, Quaternion.identity)
-            .GetComponent<Hammer>();
-
-        GameStep = GameStep.SelectingMain;
-    }
-
-    public void ExitGame()
-    {
-        Destroy(GameView.gameObject);
-        HexManager.ClearAll();
-        Destroy(Hammer.gameObject);
-
-        CreateRoomView.gameObject.SetActive(true);
-    }
-
-    public void Restart()
-    {
-        m_curTargetHex = null;
-        m_singleTargetHex = null;
-        m_mainHex = null;
-        HexManager.Restart();
-        CurPlayer = 1;
-
-        Hammer.transform.position = Vector3.one * 100;
-        GameView.ShowWheel(false);
-        GameView.SetCurPlayer(CurPlayer);
-
-        GameStep = GameStep.SelectingMain;
-    }
-
-    //public void OnSelectMain(Hexagon hex)
-    //{
-    //    m_mainHex = hex as GameHexagon;
-
-    //    GameStep = GameStep.Start;
-    //    GameStep = GameStep.RandomOperation;
-    //}
-
-    //public void OnSelectTarget(Hexagon hex)
-    //{
-    //    m_curTargetHex = hex;
-    //    HexManager.OnSelectTarget(hex);
-    //    GameStep = GameStep.SelectingStrength;
-    //}
-
-    public void OnGameOver()
-    {
-        GameStep = GameStep.GameOver;
-    }
-
-    public void OnStartHitting()
-    {
-        if(OpType == OpType.Pass)
-        {
-            GameView.ShowWheel(false);
-            GameView.ShowWheelLater(true, 0.5f);
-
-            NextPlayer();
-            return;
-        }
-
-        // 检查是否有选定的颜色,如果已经没有相应的颜色，则再次随机
-        if(OpType != OpType.Both && !HexManager.HasColor(OpType))
-        {
-            GameView.ShowWheel(false);
-            GameView.ShowWheelLater(true, 0.5f);
-            GameView.ShowTips("颜色无效，再转一回吧");
-
-            return;
-        }
-
-        GameStep = GameStep.Hitting;
-        GameView.ShowWheel(false);
-    }
-    
-    private void NextPlayer(bool isGood = false)
-    {
-        ++CurPlayer;
-        if(CurPlayer > GameConf.MemCount)
+        public void ToGame()
         {
             CurPlayer = 1;
-        }
 
-        GameView.SetCurPlayer(CurPlayer);
+            Hammer = GameObject.Instantiate(PrefabPool.GetPrefab("model/hammer"), Vector3.one * 100, Quaternion.identity)
+                .GetComponent<Hammer>();
+            Hammer.gameObject.SetActive(true);
 
-        string goodOrNot = isGood ? "GOOD!!!\n" : "";
-        GameView.ShowTips(goodOrNot + "下回合: 玩家" + CurPlayer);
-    }
+            UIGame uiGame = UIManager.CreateUI<UIGame>();
+            uiGame.SetRoomConfig();
+            uiGame.SetCurPlayer(CurPlayer);
 
-
-	// Update is called once per frame
-	void Update ()
-    {
-        HandleHitting();
-
-        // EXIT
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Application.Quit();
-        }
-	}
-
-    private void HandleHitting()
-    {
-        if(GameStep == GameStep.SelectingMain)
-        {
-            HandleMain();
-        }
-        else if(GameStep == GameStep.Hitting)
-        {
-            HandleTarget();
-        }
-    }
-
-    private void HandleMain()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            Hexagon theHex = GetHittingHex();
-            if (theHex != null)
+            // camera
+            if (GameConf.MapType == MapType.Small)
             {
-                m_mainHex = theHex as GameHexagon;
-                m_mainHex.OnBecomeMain();
-                GameStep = GameStep.Start;
-
-                GameView.ShowWheelLater(true, 1);
-                GameStep = GameStep.RandomOperation;
+                Camera.main.transform.position = new Vector3(1.57f, 9.07f, -5.82f);
             }
-        }
-    }
-
-    private void HandleTarget()
-    {
-        // 按下时选择一一个格子，并开始模拟力度
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (m_curTargetHex != null)
+            else if (GameConf.MapType == MapType.Middle)
             {
+                Camera.main.transform.position = new Vector3(2.18f, 9.07f, -7.01f);
+            }
+            else if (GameConf.MapType == MapType.Big)
+            {
+                Camera.main.transform.position = new Vector3(2.58f, 9.07f, -8.2f);
+            }
+
+            HexManager = AddChild(new HexManager()) as HexManager;
+
+            
+
+            GameStep = GameStep.SelectingMain;
+        }
+
+        public void EndGame()
+        {
+            UIManager.RemoveUIByType<UIGame>();
+            HexManager.ClearAll();
+            GameObject.Destroy(Hammer.gameObject);
+
+            UIManager.CreateUI<UICreateRoom>();
+        }
+
+        public void Restart()
+        {
+            m_curTargetHex = null;
+            m_singleTargetHex = null;
+            m_mainHex = null;
+            HexManager.Restart();
+            CurPlayer = 1;
+
+            Hammer.transform.position = Vector3.one * 100;
+            UIGame gameUI = UIManager.GetUIByType<UIGame>();
+            gameUI.ShowWheel(false);
+            gameUI.SetCurPlayer(CurPlayer);
+
+            GameStep = GameStep.SelectingMain;
+        }
+
+        public void OnGameOver()
+        {
+            GameStep = GameStep.GameOver;
+        }
+
+        public void OnStartHitting()
+        {
+            UIGame uiGame = UIManager.GetUIByType<UIGame>();
+
+            if (OpType == OpType.Pass)
+            {
+                uiGame.ShowWheel(false);
+                uiGame.ShowWheelLater(true, 0.5f);
+
+                NextPlayer();
                 return;
             }
 
-            GameHexagon theHex = GetHittingHex();
-
-            // 在强制模式下，必须砸同一个格子
-            if(GameConf.ForceKill && m_singleTargetHex != null && m_singleTargetHex != theHex)
+            // 检查是否有选定的颜色,如果已经没有相应的颜色，则再次随机
+            if (OpType != OpType.Both && !HexManager.HasColor(OpType))
             {
-                GameView.ShowTips("必须砸同一个格子！");
+                uiGame.ShowWheel(false);
+                uiGame.ShowWheelLater(true, 0.5f);
+                uiGame.ShowTips("颜色无效，再转一回吧");
+
                 return;
             }
 
-            if (theHex != null && theHex != m_mainHex && CheckColor(theHex, OpType))
-            {
-                m_curTargetHex = theHex;
-                m_singleTargetHex = theHex;
-                GameView.StartSliderMoving();
+            GameStep = GameStep.Hitting;
+            uiGame.ShowWheel(false);
+        }
 
-                Hammer.transform.position = m_curTargetHex.Obj.transform.position + Vector3.up;
+        private void NextPlayer(bool isGood = false)
+        {
+            ++CurPlayer;
+            if (CurPlayer > GameConf.MemCount)
+            {
+                CurPlayer = 1;
+            }
+
+            UIGame uiGame = UIManager.GetUIByType<UIGame>();
+            uiGame.SetCurPlayer(CurPlayer);
+
+            string goodOrNot = isGood ? "GOOD!!!\n" : "";
+            uiGame.ShowTips(goodOrNot + "下回合: 玩家" + CurPlayer);
+        }
+
+
+
+        public bool IsOnline = false;
+
+        private GameHexagon m_mainHex;
+        public GameHexagon MainHex { get { return m_mainHex; } }
+
+        private GameHexagon m_curTargetHex;
+        private GameHexagon m_singleTargetHex; // 强制模式下，每轮必须砸掉一个且是唯一一个，这里保存第一次砸中的格子
+        private const float c_strenghtSensitivity = 1.0f;
+
+        public override void Update(float delta)
+        {
+            base.Update(delta);
+
+            HandleHitting();
+
+            // EXIT
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                Application.Quit();
             }
         }
 
-        // 抬起时加判断，如果是按在同一个格子上，则为砸下，否则为取消
-        if (Input.GetMouseButtonUp(0))
+
+        public void LateUpdate(float delta)
         {
-            if (m_curTargetHex == null)
+            AsyncInvokeMng.LateUpdate();
+        }
+
+
+        private void HandleHitting()
+        {
+            if (GameStep == GameStep.SelectingMain)
             {
-                return;
+                HandleMain();
+            }
+            else if (GameStep == GameStep.Hitting)
+            {
+                HandleTarget();
+            }
+        }
+
+        private void HandleMain()
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                Hexagon theHex = GetHittingHex();
+                if (theHex != null)
+                {
+                    m_mainHex = theHex as GameHexagon;
+                    m_mainHex.OnBecomeMain();
+                    GameStep = GameStep.Start;
+
+                    UIManager.GetUIByType<UIGame>().ShowWheelLater(true, 1);
+                    GameStep = GameStep.RandomOperation;
+                }
+            }
+        }
+
+        private void HandleTarget()
+        {
+            // 按下时选择一一个格子，并开始模拟力度
+            if (Input.GetMouseButtonDown(0))
+            {
+                if (m_curTargetHex != null)
+                {
+                    return;
+                }
+
+                GameHexagon theHex = GetHittingHex();
+
+                // 在强制模式下，必须砸同一个格子
+                if (GameConf.ForceKill && m_singleTargetHex != null && m_singleTargetHex != theHex)
+                {
+                    UIManager.GetUIByType<UIGame>().ShowTips("必须砸同一个格子！");
+                    return;
+                }
+
+                if (theHex != null && theHex != m_mainHex && CheckColor(theHex, OpType))
+                {
+                    m_curTargetHex = theHex;
+                    m_singleTargetHex = theHex;
+                    UIManager.GetUIByType<UIGame>().StartSliderMoving();
+
+                    Hammer.transform.position = m_curTargetHex.Obj.transform.position + Vector3.up;
+                }
             }
 
-            float strength = GameView.StopSliderMoving() * c_strenghtSensitivity;
-            if (m_curTargetHex == GetHittingHex())
+            // 抬起时加判断，如果是按在同一个格子上，则为砸下，否则为取消
+            if (Input.GetMouseButtonUp(0))
             {
-                //if(strength > 0.95f)
-                //{
-                //    GameView.ShowTips("GOOD !!!");
-                //}
+                if (m_curTargetHex == null)
+                {
+                    return;
+                }
 
-                // 锤子
-                Hammer.Knock();
+                float strength = UIManager.GetUIByType<UIGame>().StopSliderMoving() * c_strenghtSensitivity;
+                if (m_curTargetHex == GetHittingHex())
+                {
+                    //if(strength > 0.95f)
+                    //{
+                    //    GameView.ShowTips("GOOD !!!");
+                    //}
 
-                StopAllCoroutines();
-                StartCoroutine(UpdateAllHexesLater(strength));
+                    // 锤子
+                    Hammer.Knock();
+
+                    CoroutineManager.StopAllCoroutines();
+                    CoroutineManager.StartCoroutine(UpdateAllHexesLater(strength));
+                }
+                else
+                {
+                    m_curTargetHex = null;
+                    m_singleTargetHex = null;
+                }
+
+                UIManager.GetUIByType<UIGame>().ResetSlider();
+                //HexManager.OnSelectTarget(null);
+            }
+        }
+
+        IEnumerator UpdateAllHexesLater(float lastStrength)
+        {
+            yield return new WaitForSeconds(0.1f);
+
+            m_curTargetHex.OnHit(lastStrength);
+            HexManager.UpdateAllBalance();
+
+            // 如果是强制砸落，则必须当前块掉落再进行下一轮
+            if (!(m_curTargetHex.IsActive() && GameConf.ForceKill))
+            {
+                //
+                if (GameStep != GameStep.GameOver)
+                {
+                    GameStep = GameStep.RandomOperation;
+                    UIManager.GetUIByType<UIGame>().ShowWheelLater(true, 1f);
+
+                    NextPlayer(lastStrength > 0.95f);
+                }
+                m_singleTargetHex = null;
+            }
+
+            m_curTargetHex = null;
+        }
+
+        private static bool CheckColor(GameHexagon hex, OpType op)
+        {
+            if (op == OpType.Pass)
+            {
+                Globals.Instance.UIManager.GetUIByType<UIGame>().ShowTips("此次跳过");
+                return false;
+            }
+            else if (op == OpType.Both)
+            {
+                return true;
             }
             else
             {
-                m_curTargetHex = null;
-                m_singleTargetHex = null;
+                if (hex.OpType != op)
+                {
+                    Globals.Instance.UIManager.GetUIByType<UIGame>().ShowTips(
+                        string.Format("<color=yellow>必须砸{0}颜色块！</color>", UIConstants.s_ops[op]));
+                }
+
+                return hex.OpType == op;
             }
-            
-            GameView.ResetSlider();
-            //HexManager.OnSelectTarget(null);
         }
-    }
 
-    IEnumerator UpdateAllHexesLater(float lastStrength)
-    {
-        yield return new WaitForSeconds(0.1f);
-        
-        m_curTargetHex.OnHit(lastStrength);
-        HexManager.UpdateAllBalance();
-
-        // 如果是强制砸落，则必须当前块掉落再进行下一轮
-        if (!(m_curTargetHex.IsActive() && GameConf.ForceKill))
+        private GameHexagon GetHittingHex()
         {
-            //
-            if (GameStep != GameStep.GameOver)
+            GameHexagon result = null;
+
+            RaycastHit hit;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out hit, 100, LayerMask.GetMask("GameHex")))
             {
-                GameStep = GameStep.RandomOperation;
-                GameView.ShowWheelLater(true, 1f);
-
-                NextPlayer(lastStrength > 0.95f);
-            }
-            m_singleTargetHex = null;
-        }
-
-        m_curTargetHex = null;
-    }
-
-    private static bool CheckColor(GameHexagon hex, OpType op)
-    {
-        if(op == OpType.Pass)
-        {
-            Globals.Instance.GameView.ShowTips("此次跳过");
-            return false;
-        }
-        else if(op == OpType.Both)
-        {
-            return true;
-        }
-        else
-        {
-            if(hex.OpType != op)
-            {
-                Globals.Instance.GameView.ShowTips(
-                    string.Format("<color=yellow>必须砸{0}颜色块！</color>", GameView.s_ops[op]));
+                // Hexagon对象
+                result = hit.transform.GetComponent<CustomCollider>().ParentHexagon as GameHexagon;
             }
 
-            return hex.OpType == op;
-        }
-    }
-
-    private GameHexagon GetHittingHex()
-    {
-        GameHexagon result = null;
-
-        RaycastHit hit;
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out hit, 100, LayerMask.GetMask("GameHex")))
-        {
-            // Hexagon对象
-            result = hit.transform.GetComponent<CustomCollider>().ParentHexagon as GameHexagon;
+            return result;
         }
 
-        return result;
+        // Use this for initialization
+        //    void Start()
+        //    {
+        //        AsyncInvokeMng = CreateInstance<AsyncInvokeMng>();
+
+        //        Init();
+        //    }
+
+
+        //    private void Init()
+        //    {
+        //        GameStep = GameStep.NotStart;
+
+        //        GameObject uiObj = GameObject.Instantiate(Resources.Load("ui/MainView") as GameObject);
+        //        uiObj.transform.SetParent(Canvas.transform, false);
+        //        MainView = uiObj.GetComponent<MainView>();
+        //        //CreateGameUI();
+        //    }
+
+        //    private T CreateInstance<T>()
+        //        where T : MonoBehaviour
+        //    {
+        //        T t;
+        //        GameObject obj = new GameObject();
+        //        obj.transform.SetParent(transform);
+        //        t = obj.AddComponent<T>();
+        //        t.name = typeof(T).ToString();
+
+        //        return t;
+        //    }
+
+        //    public void CreateOnlineView()
+        //    {
+        //        GameObject uiObj = Instantiate(Resources.Load("ui/OnlineView") as GameObject);
+        //        uiObj.transform.SetParent(Canvas.transform, false);
+        //        OnlineView = uiObj.GetComponent<OnlineView>();
+        //    }
+
+        //    public void CreateGameUI()
+        //    {
+        //        GameObject uiObj = Instantiate(Resources.Load("ui/CreateRoomView") as GameObject);
+        //        uiObj.transform.SetParent(Canvas.transform, false);
+        //        CreateRoomView = uiObj.GetComponent<CreateRoomView>();
+        //    }
+
+        //    public void EnterGame(GameConf conf)
+        //    {
+        //        GameConf = conf;
+        //        CurPlayer = 1;
+
+        //        CreateRoomView.gameObject.SetActive(false);
+
+        //        GameObject uiObj = Instantiate(Resources.Load("ui/GameView") as GameObject);
+        //        uiObj.transform.SetParent(Canvas.transform, false);
+        //        GameView = uiObj.GetComponent<GameView>();
+        //        GameView.SetRoomConfig(conf);
+        //        GameView.SetCurPlayer(CurPlayer);
+
+        //        // camera
+        //        if (conf.MapType == MapType.Small)
+        //        {
+        //            Camera.main.transform.position = new Vector3(1.57f, 9.07f, -5.82f);
+        //        }
+        //        else if (conf.MapType == MapType.Middle)
+        //        {
+        //            Camera.main.transform.position = new Vector3(2.18f, 9.07f, -7.01f);
+        //        }
+        //        else if (conf.MapType == MapType.Big)
+        //        {
+        //            Camera.main.transform.position = new Vector3(2.58f, 9.07f, -8.2f);
+        //        }
+
+        //        HexManager = CreateInstance<HexManager>();
+
+        //        Hammer = Instantiate(Resources.Load("model/hammer") as GameObject, Vector3.one * 100, Quaternion.identity)
+        //            .GetComponent<Hammer>();
+
+        //        GameStep = GameStep.SelectingMain;
+        //    }
+
+        //    public void ExitGame()
+        //    {
+        //        Destroy(GameView.gameObject);
+        //        HexManager.ClearAll();
+        //        Destroy(Hammer.gameObject);
+
+        //        CreateRoomView.gameObject.SetActive(true);
+        //    }
+
+        //    public void Restart()
+        //    {
+        //        m_curTargetHex = null;
+        //        m_singleTargetHex = null;
+        //        m_mainHex = null;
+        //        HexManager.Restart();
+        //        CurPlayer = 1;
+
+        //        Hammer.transform.position = Vector3.one * 100;
+        //        GameView.ShowWheel(false);
+        //        GameView.SetCurPlayer(CurPlayer);
+
+        //        GameStep = GameStep.SelectingMain;
+        //    }
+
+        //    //public void OnSelectMain(Hexagon hex)
+        //    //{
+        //    //    m_mainHex = hex as GameHexagon;
+
+        //    //    GameStep = GameStep.Start;
+        //    //    GameStep = GameStep.RandomOperation;
+        //    //}
+
+        //    //public void OnSelectTarget(Hexagon hex)
+        //    //{
+        //    //    m_curTargetHex = hex;
+        //    //    HexManager.OnSelectTarget(hex);
+        //    //    GameStep = GameStep.SelectingStrength;
+        //    //}
+
+        //    public void OnGameOver()
+        //    {
+        //        GameStep = GameStep.GameOver;
+        //    }
+
+        //    public void OnStartHitting()
+        //    {
+        //        if (OpType == OpType.Pass)
+        //        {
+        //            GameView.ShowWheel(false);
+        //            GameView.ShowWheelLater(true, 0.5f);
+
+        //            NextPlayer();
+        //            return;
+        //        }
+
+        //        // 检查是否有选定的颜色,如果已经没有相应的颜色，则再次随机
+        //        if (OpType != OpType.Both && !HexManager.HasColor(OpType))
+        //        {
+        //            GameView.ShowWheel(false);
+        //            GameView.ShowWheelLater(true, 0.5f);
+        //            GameView.ShowTips("颜色无效，再转一回吧");
+
+        //            return;
+        //        }
+
+        //        GameStep = GameStep.Hitting;
+        //        GameView.ShowWheel(false);
+        //    }
+
+        //    private void NextPlayer(bool isGood = false)
+        //    {
+        //        ++CurPlayer;
+        //        if (CurPlayer > GameConf.MemCount)
+        //        {
+        //            CurPlayer = 1;
+        //        }
+
+        //        GameView.SetCurPlayer(CurPlayer);
+
+        //        string goodOrNot = isGood ? "GOOD!!!\n" : "";
+        //        GameView.ShowTips(goodOrNot + "下回合: 玩家" + CurPlayer);
+        //    }
+
+
+        //    // Update is called once per frame
+        //    void Update()
+        //    {
+        //        HandleHitting();
+
+        //        // EXIT
+        //        if (Input.GetKeyDown(KeyCode.Escape))
+        //        {
+        //            Application.Quit();
+        //        }
+        //    }
+
+        //    private void HandleHitting()
+        //    {
+        //        if (GameStep == GameStep.SelectingMain)
+        //        {
+        //            HandleMain();
+        //        }
+        //        else if (GameStep == GameStep.Hitting)
+        //        {
+        //            HandleTarget();
+        //        }
+        //    }
+
+        //    private void HandleMain()
+        //    {
+        //        if (Input.GetMouseButtonDown(0))
+        //        {
+        //            Hexagon theHex = GetHittingHex();
+        //            if (theHex != null)
+        //            {
+        //                m_mainHex = theHex as GameHexagon;
+        //                m_mainHex.OnBecomeMain();
+        //                GameStep = GameStep.Start;
+
+        //                GameView.ShowWheelLater(true, 1);
+        //                GameStep = GameStep.RandomOperation;
+        //            }
+        //        }
+        //    }
+
+        //    private void HandleTarget()
+        //    {
+        //        // 按下时选择一一个格子，并开始模拟力度
+        //        if (Input.GetMouseButtonDown(0))
+        //        {
+        //            if (m_curTargetHex != null)
+        //            {
+        //                return;
+        //            }
+
+        //            GameHexagon theHex = GetHittingHex();
+
+        //            // 在强制模式下，必须砸同一个格子
+        //            if (GameConf.ForceKill && m_singleTargetHex != null && m_singleTargetHex != theHex)
+        //            {
+        //                GameView.ShowTips("必须砸同一个格子！");
+        //                return;
+        //            }
+
+        //            if (theHex != null && theHex != m_mainHex && CheckColor(theHex, OpType))
+        //            {
+        //                m_curTargetHex = theHex;
+        //                m_singleTargetHex = theHex;
+        //                GameView.StartSliderMoving();
+
+        //                Hammer.transform.position = m_curTargetHex.Obj.transform.position + Vector3.up;
+        //            }
+        //        }
+
+        //        // 抬起时加判断，如果是按在同一个格子上，则为砸下，否则为取消
+        //        if (Input.GetMouseButtonUp(0))
+        //        {
+        //            if (m_curTargetHex == null)
+        //            {
+        //                return;
+        //            }
+
+        //            float strength = GameView.StopSliderMoving() * c_strenghtSensitivity;
+        //            if (m_curTargetHex == GetHittingHex())
+        //            {
+        //                //if(strength > 0.95f)
+        //                //{
+        //                //    GameView.ShowTips("GOOD !!!");
+        //                //}
+
+        //                // 锤子
+        //                Hammer.Knock();
+
+        //                StopAllCoroutines();
+        //                StartCoroutine(UpdateAllHexesLater(strength));
+        //            }
+        //            else
+        //            {
+        //                m_curTargetHex = null;
+        //                m_singleTargetHex = null;
+        //            }
+
+        //            GameView.ResetSlider();
+        //            //HexManager.OnSelectTarget(null);
+        //        }
+        //    }
+
+        //    IEnumerator UpdateAllHexesLater(float lastStrength)
+        //    {
+        //        yield return new WaitForSeconds(0.1f);
+
+        //        m_curTargetHex.OnHit(lastStrength);
+        //        HexManager.UpdateAllBalance();
+
+        //        // 如果是强制砸落，则必须当前块掉落再进行下一轮
+        //        if (!(m_curTargetHex.IsActive() && GameConf.ForceKill))
+        //        {
+        //            //
+        //            if (GameStep != GameStep.GameOver)
+        //            {
+        //                GameStep = GameStep.RandomOperation;
+        //                GameView.ShowWheelLater(true, 1f);
+
+        //                NextPlayer(lastStrength > 0.95f);
+        //            }
+        //            m_singleTargetHex = null;
+        //        }
+
+        //        m_curTargetHex = null;
+        //    }
+
+        //    private static bool CheckColor(GameHexagon hex, OpType op)
+        //    {
+        //        if (op == OpType.Pass)
+        //        {
+        //            Globals.Instance.GameView.ShowTips("此次跳过");
+        //            return false;
+        //        }
+        //        else if (op == OpType.Both)
+        //        {
+        //            return true;
+        //        }
+        //        else
+        //        {
+        //            if (hex.OpType != op)
+        //            {
+        //                Globals.Instance.GameView.ShowTips(
+        //                    string.Format("<color=yellow>必须砸{0}颜色块！</color>", GameView.s_ops[op]));
+        //            }
+
+        //            return hex.OpType == op;
+        //        }
+        //    }
+
+        //    private GameHexagon GetHittingHex()
+        //    {
+        //        GameHexagon result = null;
+
+        //        RaycastHit hit;
+        //        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        //        if (Physics.Raycast(ray, out hit, 100, LayerMask.GetMask("GameHex")))
+        //        {
+        //            // Hexagon对象
+        //            result = hit.transform.GetComponent<CustomCollider>().ParentHexagon as GameHexagon;
+        //        }
+
+        //        return result;
+        //    }
     }
 }

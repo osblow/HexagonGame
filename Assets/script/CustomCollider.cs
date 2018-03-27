@@ -3,36 +3,40 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public class CustomCollider : MonoBehaviour
+
+namespace Osblow
 {
-    //public event Action OnClick;
-
-    public Hexagon ParentHexagon;
-
-
-	// Use this for initialization
-	void Start ()
+    public class CustomCollider : MonoBehaviour
     {
-		
-	}
-	
-	// Update is called once per frame
-	void Update ()
-    {
-		
-	}
+        //public event Action OnClick;
 
-    //private void OnMouseDown()
-    //{
-    //    if(Globals.Instance.GameStep != GameStep.SelectingTarget &&
-    //        Globals.Instance.GameStep != GameStep.SelectingMain)
-    //    {
-    //        return;
-    //    }
+        public Hexagon ParentHexagon;
 
-    //    if(OnClick != null)
-    //    {
-    //        OnClick();
-    //    }
-    //}
+
+        // Use this for initialization
+        void Start()
+        {
+
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
+
+        //private void OnMouseDown()
+        //{
+        //    if(Globals.Instance.GameStep != GameStep.SelectingTarget &&
+        //        Globals.Instance.GameStep != GameStep.SelectingMain)
+        //    {
+        //        return;
+        //    }
+
+        //    if(OnClick != null)
+        //    {
+        //        OnClick();
+        //    }
+        //}
+    }
 }

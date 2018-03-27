@@ -5,5 +5,10 @@ HexagonGame.sln
 .vs/*
 build/*
 build_android/hexgame.apk
+<<<<<<< HEAD
 ProjectSettings/ProjectVersion.txt
 ProjectSettings/ProjectVersion.txt
+=======
+obj/*
+HexagonGame.userprefs
+>>>>>>> ba48779413dd01f4c9f199a974754d3c1ab1134c
