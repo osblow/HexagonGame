@@ -54,7 +54,7 @@ namespace Osblow.Net.Server
                 byte[] data = new byte[1024];
                 EndPoint ep = new IPEndPoint(IPAddress.Any, 0);
                 int recv = sock.ReceiveFrom(data, ref ep);
-                if (OnGetConf != null)
+                if (Globals.Instance != null)
                 {
                     //Globals.Instance.AsyncInvokeMng.Events.Add(
                     //    delegate { OnGetConf(((IPEndPoint)ep).Address.ToString(), ((IPEndPoint)ep).Port, GameConf.Unpack(data)); });

@@ -35,20 +35,20 @@ namespace Osblow
         public void OnClickConfirm(GameObject obj, object[] args)
         {
             GameConf conf = new GameConf();
-            //conf.Name = Globals.Instance.OnlineView.RoomName.text;
+            conf.Name = UIOnline.s_roomName;
             conf.MapType = (MapType)m_mapOption.value;
             conf.MemCount = m_memCountOption.value + 2;
             conf.ForceKill = m_forceToggle.isOn;
             Globals.Instance.GameConf = conf;
 
+            Globals.Instance.UIManager.RemoveUI(this);
             if (Globals.Instance.IsOnline)
             {
                 BroadCastServer.Start(conf);
+                Globals.Instance.UIManager.CreateUI<UIEnterRoom>();
             }
             else
             {
-                Globals.Instance.UIManager.RemoveUI(this);
-                //Globals.Instance.EnterGame(conf);
                 Globals.Instance.ToGame();
             }
         }

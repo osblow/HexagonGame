@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using UnityEngine;
+﻿using UnityEngine;
+using Osblow.Net.Server;
 
 namespace Osblow
 {
@@ -35,10 +32,9 @@ namespace Osblow
         {
             Globals.Instance.IsOnline = true;
             Globals.Instance.UIManager.RemoveUI(this);
-            //gameObject.SetActive(false);
-            //Globals.Instance.CreateOnlineView();
+            Globals.Instance.UIManager.CreateUI<UIOnline>();
 
-            //BroadCastReciever.Start();
+            BroadCastReciever.Start();
         }
     }
 }

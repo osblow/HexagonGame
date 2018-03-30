@@ -8,7 +8,10 @@ namespace Osblow.Net.Client
 {
     public class CmdHandler
     {
+        public static void Handle(byte[] data)
+        {
 
+        }
 
         public static T GetProtoInstance<T>(byte[] data, int index)
         {

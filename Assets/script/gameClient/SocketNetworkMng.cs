@@ -192,6 +192,9 @@ namespace Osblow.Net.Client
 
         private Socket m_socket;
 
+        private NetBuffer m_buffer = new NetBuffer();
+
+
         public MyClient(string addr, int port)
         {
             Connect(addr, port);
@@ -312,30 +315,29 @@ namespace Osblow.Net.Client
                     //Globals.SceneSingleton<SocketNetworkMng>().Handler(realData);
 
                     // 拼接数据包
-                    //if (m_buffer.TargetLength < 0)
-                    //{
-                    //    m_buffer.Init(realData);
+                    if (m_buffer.TargetLength < 0)
+                    {
+                        m_buffer.Init(realData);
 
-                    //    if (m_buffer.CheckComplete())
-                    //    {
-                    //        Globals.SceneSingleton<SocketNetworkMng>().Handler(m_buffer.Buffer.ToArray());
+                        if (m_buffer.CheckComplete())
+                        {
+                            CmdHandler.Handle(m_buffer.Buffer.ToArray());
+                            m_buffer.Clear();
+                        }
+                    }
+                    else
+                    {
+                        if (m_buffer.CheckComplete())
+                        {
+                            CmdHandler.Handle(m_buffer.Buffer.ToArray());
 
-                    //        m_buffer.Clear();
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    if (m_buffer.CheckComplete())
-                    //    {
-                    //        Globals.SceneSingleton<SocketNetworkMng>().Handler(m_buffer.Buffer.ToArray());
-
-                    //        m_buffer.Clear();
-                    //    }
-                    //    else
-                    //    {
-                    //        m_buffer.Buffer.AddRange(realData);
-                    //    }
-                    //}
+                            m_buffer.Clear();
+                        }
+                        else
+                        {
+                            m_buffer.Buffer.AddRange(realData);
+                        }
+                    }
                     Receive();
                     
                 }
@@ -362,42 +364,5 @@ namespace Osblow.Net.Client
         {
             m_socket.Close();
         }
-
-
-
-        //class MyBuffer
-        //{
-        //    public List<byte> Buffer = new List<byte>();
-        //    public int TargetLength = -1;
-
-            
-        //    public void Init(byte[] data)
-        //    {
-        //        TargetLength = BitConverter.ToUInt16(data, 3);
-        //        Buffer.AddRange(data);
-        //    }
-
-        //    public void Clear()
-        //    {
-        //        Buffer.Clear();
-        //        TargetLength = -1;
-        //    }
-
-        //    /// <summary>
-        //    /// 检查数据包完整性
-        //    /// </summary>
-        //    /// <param name=""></param>
-        //    /// <returns></returns>
-        //    public bool CheckComplete()
-        //    {
-        //        //Debug.LogFormat("targetLength:{0}, standardSize:{1}, realSize:{2}", TargetLength, 5 + TargetLength + 1, Buffer.Count);
-        //        if(TargetLength > 0 && 5 + TargetLength + 1 > Buffer.Count)
-        //        {
-        //            return false;
-        //        }
-
-        //        return true;
-        //    }
-        //}
     }
 }

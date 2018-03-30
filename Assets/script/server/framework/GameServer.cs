@@ -9,6 +9,7 @@ namespace Osblow.Net.Server
     public class GameServer : ObjectBase
     {
         private Dictionary<int, Socket> m_clients = new Dictionary<int, Socket>();
+        private NetBuffer m_buffer = new NetBuffer();
 
 
         public GameServer(string address, int port)
@@ -74,6 +75,8 @@ namespace Osblow.Net.Server
                 Socket handler = (Socket)ar.AsyncState;
                 // Complete sending the data to the remote device.     
                 int bytesSent = handler.EndSend(ar);
+
+
 
                 //if (Globals.SceneSingleton<SocketNetworkMng>().MessageQueue.Count > 0)
                 //{
@@ -141,30 +144,29 @@ namespace Osblow.Net.Server
                     //Globals.SceneSingleton<SocketNetworkMng>().Handler(realData);
 
                     // 拼接数据包
-                    //if (m_buffer.TargetLength < 0)
-                    //{
-                    //    m_buffer.Init(realData);
+                    if (m_buffer.TargetLength < 0)
+                    {
+                        m_buffer.Init(realData);
 
-                    //    if (m_buffer.CheckComplete())
-                    //    {
-                    //        Globals.SceneSingleton<SocketNetworkMng>().Handler(m_buffer.Buffer.ToArray());
+                        if (m_buffer.CheckComplete())
+                        {
+                            CmdRequest.Handle(m_buffer.Buffer.ToArray());
+                            m_buffer.Clear();
+                        }
+                    }
+                    else
+                    {
+                        if (m_buffer.CheckComplete())
+                        {
+                            CmdRequest.Handle(m_buffer.Buffer.ToArray());
 
-                    //        m_buffer.Clear();
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    if (m_buffer.CheckComplete())
-                    //    {
-                    //        Globals.SceneSingleton<SocketNetworkMng>().Handler(m_buffer.Buffer.ToArray());
-
-                    //        m_buffer.Clear();
-                    //    }
-                    //    else
-                    //    {
-                    //        m_buffer.Buffer.AddRange(realData);
-                    //    }
-                    //}
+                            m_buffer.Clear();
+                        }
+                        else
+                        {
+                            m_buffer.Buffer.AddRange(realData);
+                        }
+                    }
                     Receive(client.GetHashCode());
 
                 }
