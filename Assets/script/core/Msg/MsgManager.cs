@@ -14,7 +14,7 @@ namespace Osblow
 		}
 
 
-		public void AddMsg(MsgType type, Delegate callback)
+		public void AddMsg(MsgType type, Action callback)
 		{
 			if (!m_msgList.ContainsKey (type))
 			{
@@ -24,7 +24,27 @@ namespace Osblow
 			m_msgList[type].Add(callback);
 		}
 
-		public void RemoveMsg(MsgType type, Delegate callback)
+        public void AddMsg(MsgType type, Action<object[]> callback)
+        {
+            if (!m_msgList.ContainsKey(type))
+            {
+                m_msgList.Add(type, new List<Delegate>());
+            }
+
+            m_msgList[type].Add(callback);
+        }
+
+		public void RemoveMsg(MsgType type, Action callback)
+        {
+            if (!m_msgList.ContainsKey(type))
+            {
+                return;
+            }
+
+            m_msgList[type].Remove(callback);
+        }
+
+        public void RemoveMsg(MsgType type, Action<object[]> callback)
         {
             if (!m_msgList.ContainsKey(type))
             {
@@ -43,7 +63,14 @@ namespace Osblow
 
             for (int i = 0; i < m_msgList[type].Count; i++)
             {
-                m_msgList[type][i].DynamicInvoke(args);
+                if (m_msgList[type][i] is Action)
+                {
+                    ((Action)m_msgList[type][i]).Invoke();
+                }
+                else
+                {
+                    ((Action<object[]>)m_msgList[type][i]).Invoke(args);
+                }
             }
         }
 	}

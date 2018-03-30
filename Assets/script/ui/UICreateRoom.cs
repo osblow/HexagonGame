@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Osblow.Net.Server;
 
 namespace Osblow
 {
@@ -42,7 +43,7 @@ namespace Osblow
 
             if (Globals.Instance.IsOnline)
             {
-                BroadCast.Start(conf);
+                BroadCastServer.Start(conf);
             }
             else
             {

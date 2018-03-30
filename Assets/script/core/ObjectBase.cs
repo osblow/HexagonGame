@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -63,12 +62,22 @@ namespace Osblow
         private MsgManager m_msgManager = new MsgManager();
 
 
-        protected void AddMsgEvent(MsgType type, Delegate callback)
+        protected void AddMsgEvent(MsgType type, Action callback)
         {
             m_msgManager.AddMsg(type, callback);
         }
 
-        protected void RemoveMsgEvent(MsgType type, Delegate callback)
+        protected void RemoveMsgEvent(MsgType type, Action callback)
+        {
+            m_msgManager.RemoveMsg(type, callback);
+        }
+
+        protected void AddMsgEvent(MsgType type, Action<object[]> callback)
+        {
+            m_msgManager.AddMsg(type, callback);
+        }
+
+        protected void RemoveMsgEvent(MsgType type, Action<object[]> callback)
         {
             m_msgManager.RemoveMsg(type, callback);
         }
@@ -88,7 +97,7 @@ namespace Osblow
         /// </summary>
         /// <param name="type"></param>
         /// <param name="args"></param>
-        public void Broadcast(MsgType type, params object[] args)
+        protected void Broadcast(MsgType type, params object[] args)
         {
             Globals.Instance.SendMessage(type, args);
         }

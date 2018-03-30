@@ -4,45 +4,48 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-class BroadCast
+namespace Osblow.Net.Server
 {
-    private static Socket s_sock;
-    private static IPEndPoint[] s_ieps;
-    private static GameConf s_conf;
-
-
-    public static void Start(GameConf conf)
+    class BroadCastServer
     {
-        s_conf = conf;
+        private static Socket s_sock;
+        private static IPEndPoint[] s_ieps;
+        private static GameConf s_conf;
 
-        s_sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram,
-        ProtocolType.Udp);
-        //255.255.255.255
-        s_ieps = new IPEndPoint[BroadConstant.BroadcastPorts.Length];
-        for (int i = 0; i < s_ieps.Length; i++)
+
+        public static void Start(GameConf conf)
         {
-            s_ieps[i] = new IPEndPoint(IPAddress.Broadcast, BroadConstant.BroadcastPorts[i]);
-        }
+            s_conf = conf;
 
-        s_sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
-
-        Thread t = new Thread(BroadcastMessage);
-        t.Start();
-        //sock.Close();
-    }
-
-    private static void BroadcastMessage()
-    {
-        while (true)
-        {
+            s_sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram,
+            ProtocolType.Udp);
+            //255.255.255.255
+            s_ieps = new IPEndPoint[BroadConstant.BroadcastPorts.Length];
             for (int i = 0; i < s_ieps.Length; i++)
             {
-                UnityEngine.Debug.Log("send to port " + s_ieps[i]);
-                s_sock.SendTo(GameConf.Pack(s_conf), s_ieps[i]);
+                s_ieps[i] = new IPEndPoint(IPAddress.Broadcast, BroadConstant.BroadcastPorts[i]);
             }
-            Thread.Sleep(2000);
+
+            s_sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
+
+            Thread t = new Thread(BroadcastMessage);
+            t.Start();
+            //sock.Close();
+        }
+
+        private static void BroadcastMessage()
+        {
+            while (true)
+            {
+                for (int i = 0; i < s_ieps.Length; i++)
+                {
+                    UnityEngine.Debug.Log("send to port " + s_ieps[i]);
+                    s_sock.SendTo(GameConf.Pack(s_conf), s_ieps[i]);
+                }
+                Thread.Sleep(2000);
+            }
+
         }
 
     }
-
 }

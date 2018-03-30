@@ -6,7 +6,7 @@ using System.Net.Sockets;
 
 namespace Osblow.Net.Server
 {
-    public class GameServer
+    public class GameServer : ObjectBase
     {
         private Dictionary<int, Socket> m_clients = new Dictionary<int, Socket>();
 

@@ -47,6 +47,8 @@ namespace Osblow
             m_hitStrength = new HitStrength(m_strengthSlider);
             m_randomWheel = new RandomWheel(m_wheel);
             ShowWheel(false);
+
+            AddMsgEvent(MsgType.OnShowTips, OnShowTips);
         }
 
         public override void Update(float delta)
@@ -152,7 +154,19 @@ namespace Osblow
         }
 
 
-        public void ShowTips()
+        private void OnShowTips(object[] args)
+        {
+            if(args == null || args.Length <= 0)
+            {
+                ShowGameStepTips();
+            }
+            else if(args.Length == 1)
+            {
+                ShowTips(args[0].ToString());
+            }
+        }
+
+        private void ShowGameStepTips()
         {
             if (m_isSpecialText)
             {
@@ -166,9 +180,9 @@ namespace Osblow
                 m_tipsText.text = UIConstants.s_tips[GameStep.GameOver] + "  玩家" + Globals.Instance.CurPlayer + "输了";
             }
         }
-
+        
         private bool m_isSpecialText = false;
-        public void ShowTips(string tips)
+        private void ShowTips(string tips)
         {
             m_tipsText.text = tips;
             m_isSpecialText = true;
@@ -180,7 +194,7 @@ namespace Osblow
         private void ResetTips()
         {
             m_isSpecialText = false;
-            ShowTips();
+            ShowGameStepTips();
         }
 
 
