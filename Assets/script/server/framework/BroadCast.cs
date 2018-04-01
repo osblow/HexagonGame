@@ -8,14 +8,23 @@ namespace Osblow.Net.Server
 {
     class BroadCastServer
     {
+        private static bool s_hasSent = false;
+
         private static Socket s_sock;
         private static IPEndPoint[] s_ieps;
-        private static GameConf s_conf;
+        private static Thread s_sendThread;
+
+        private static GameConf s_gameConf;
 
 
-        public static void Start(GameConf conf)
+        public static void Start(GameConf gameConf)
         {
-            s_conf = conf;
+            if (s_hasSent)
+            {
+                return;
+            }
+
+            s_gameConf = gameConf;
 
             s_sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram,
             ProtocolType.Udp);
@@ -28,9 +37,22 @@ namespace Osblow.Net.Server
 
             s_sock.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
 
-            Thread t = new Thread(BroadcastMessage);
-            t.Start();
+            s_sendThread = new Thread(BroadcastMessage);
+            s_sendThread.Start();
+            s_hasSent = true;
             //sock.Close();
+        }
+
+        public static void Stop()
+        {
+            if (!s_hasSent)
+            {
+                return;
+            }
+
+            s_sendThread.Abort();
+            s_sock.Close();
+            s_hasSent = false;
         }
 
         private static void BroadcastMessage()
@@ -40,12 +62,26 @@ namespace Osblow.Net.Server
                 for (int i = 0; i < s_ieps.Length; i++)
                 {
                     UnityEngine.Debug.Log("send to port " + s_ieps[i]);
-                    s_sock.SendTo(GameConf.Pack(s_conf), s_ieps[i]);
+                    byte[] data = CmdBroadcast.SendRoomConf(GetPrivateIP(), 4050, s_gameConf);
+                    s_sock.SendTo(data, s_ieps[i]);
                 }
                 Thread.Sleep(2000);
             }
 
         }
 
+        //获取内网IP
+        public static string GetPrivateIP()
+        {
+            string AddressIP = string.Empty;
+            foreach (IPAddress ipAddress in Dns.GetHostEntry(Dns.GetHostName()).AddressList)
+            {
+                if (ipAddress.AddressFamily.ToString() == "InterNetwork")
+                {
+                    AddressIP = ipAddress.ToString();
+                }
+            }
+            return AddressIP;
+        }
     }
 }

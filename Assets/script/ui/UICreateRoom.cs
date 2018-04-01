@@ -45,6 +45,7 @@ namespace Osblow
             if (Globals.Instance.IsOnline)
             {
                 BroadCastServer.Start(conf);
+                Globals.Instance.StartServer();
                 Globals.Instance.UIManager.CreateUI<UIEnterRoom>();
             }
             else

@@ -1,0 +1,1 @@
+.\protogen\protogen.exe -i:.\proto_files\hexgame.proto -o:.\proto_files\ProtoCompile\Proto\Proto\Protos.cs

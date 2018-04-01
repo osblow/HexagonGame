@@ -10,6 +10,8 @@ namespace Osblow
 
         OnFindServer = 2000, // 发现服务器
         OnPlayerEnter = 2001, // 有玩家加入
+
+        OnConnectedServer = 2100, // 连接上服务器
 	}
 }
 

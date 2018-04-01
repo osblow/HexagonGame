@@ -1,0 +1,6 @@
+E:\Projects\HexagonGame\Tools\proto\proto_files\ProtoCompile\Proto\Proto\obj\Debug\Proto.csprojResolveAssemblyReference.cache
+E:\Projects\HexagonGame\Tools\proto\proto_files\ProtoCompile\Proto\Proto\obj\Debug\Proto.csproj.CoreCompileInputs.cache
+E:\Projects\HexagonGame\Tools\proto\proto_files\ProtoCompile\Proto\Proto\obj\Debug\Proto.dll
+E:\Projects\HexagonGame\Tools\proto\proto_files\ProtoCompile\Proto\Proto\obj\Debug\Proto.pdb
+E:\Projects\HexagonGame\Tools\proto\proto_files\Proto.dll
+E:\Projects\HexagonGame\Tools\proto\proto_files\Proto.pdb

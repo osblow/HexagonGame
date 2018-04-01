@@ -1,7 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+using Osblow.Net.Server;
+using Osblow.Net.Client;
 
 
 public enum GameStep
@@ -123,6 +124,10 @@ namespace Osblow
         public AsyncInvokeMng AsyncInvokeMng;
         public HexManager HexManager;
 
+        // net
+        public GameServer GameServer;
+        public GameClient GameClient;
+
         public Hammer Hammer;
 
 
@@ -194,6 +199,19 @@ namespace Osblow
 
             GameStep = GameStep.SelectingMain;
         }
+
+
+        public void StartServer()
+        {
+            GameServer = new GameServer("127.0.0.1", 4050);
+        }
+
+        public void ConnectGame(string address, int port, GameConf conf)
+        {
+            GameClient = new GameClient(address, port);
+        }
+
+
 
         public void OnGameOver()
         {
@@ -272,6 +290,13 @@ namespace Osblow
             AsyncInvokeMng.LateUpdate();
         }
 
+        public override void Destroy()
+        {
+            base.Destroy();
+            // temp
+            BroadCastServer.Stop();
+            BroadCastReciever.Stop();
+        }
 
         private void HandleHitting()
         {

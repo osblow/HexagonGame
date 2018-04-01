@@ -1,29 +1,95 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using System.IO;
 using System;
+using UnityEngine;
+using Osblow.HexProto;
 
 namespace Osblow.Net.Client
 {
     public class CmdRequest
     {
-        static void Serialize(short cmd, byte[] sendData)
+        static Proto s_serializer;
+
+        /// <summary>
+        /// 广播房间信息以连接
+        /// </summary>
+        /// <param name="proto"></param>
+        static void RecieveRoomConf(object proto)
         {
-            List<byte> data = new List<byte>();
+            RoomBroadCast roomData = proto as RoomBroadCast;
 
-            byte head = 0x64;
-            short lengths = (short)sendData.Length;
-            ushort length = (ushort)sendData.Length;
-            byte tail = 0x64;
+        }
 
-            data.Add(head);
-            data.AddRange(BitConverter.GetBytes(cmd));
-            data.AddRange(BitConverter.GetBytes(length));
-            data.AddRange(sendData);
-            data.Add(tail);
 
-            //Osblow.App.Globals.SceneSingleton<SocketNetworkMng>().Send(data.ToArray());
+        public static void Handle(byte[] dataBytes)
+        {
+            if (dataBytes.Length < 6)
+            {
+                return;
+            }
+            
+            int index = 0;
+            // 处理粘包
+            while (true)
+            {
+                byte flag = dataBytes[index];
+                if (flag != 0x64)
+                {
+                    return;
+                }
+                index += 1;
+
+                short cmd = BitConverter.ToInt16(dataBytes, index);
+                index += 2;
+
+                ushort dataLen = BitConverter.ToUInt16(dataBytes, index);
+                index += 4;
+
+                if (index + dataLen + 1 > dataBytes.Length)
+                {
+                    break;
+                }
+
+                
+                Execute(cmd, dataBytes, index, dataLen);
+
+                index += (dataLen + 1);
+                if (index >= dataBytes.Length)
+                {
+                    break;
+                }
+            }
+        }
+
+        static void Execute(short cmd, byte[] data, int index, int length)
+        {
+            using (System.IO.MemoryStream stream = new System.IO.MemoryStream(data, index, length))
+            {
+                object receieved = new object();
+                receieved = s_serializer.Deserialize(stream, null, s_handlers[cmd].ProtoType);
+                s_handlers[cmd].Handler(receieved);
+            }
+        }
+
+
+
+        static Dictionary<short, ProtoHandle> s_handlers;
+
+
+        static CmdRequest()
+        {
+            s_serializer = new Proto();
+
+            s_handlers = new Dictionary<short, ProtoHandle>()
+            {
+                { Cmd.BroadcastRoomConf, new ProtoHandle() { ProtoType=typeof(RoomBroadCast), Handler=RecieveRoomConf } },
+            };
+        }
+
+        struct ProtoHandle
+        {
+            public Type ProtoType;
+            public Action<object> Handler;
         }
     }
 }

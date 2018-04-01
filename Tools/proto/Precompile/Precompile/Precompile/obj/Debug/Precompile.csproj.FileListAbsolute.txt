@@ -1,0 +1,9 @@
+E:\Projects\HexagonGame\Tools\proto\Precompile\Precompile\Precompile\bin\Debug\Proto.exe
+E:\Projects\HexagonGame\Tools\proto\Precompile\Precompile\Precompile\bin\Debug\Proto.pdb
+E:\Projects\HexagonGame\Tools\proto\Precompile\Precompile\Precompile\bin\Debug\protobuf-net.dll
+E:\Projects\HexagonGame\Tools\proto\Precompile\Precompile\Precompile\bin\Debug\protobuf-net.pdb
+E:\Projects\HexagonGame\Tools\proto\Precompile\Precompile\Precompile\bin\Debug\protobuf-net.xml
+E:\Projects\HexagonGame\Tools\proto\Precompile\Precompile\Precompile\obj\Debug\Precompile.csprojResolveAssemblyReference.cache
+E:\Projects\HexagonGame\Tools\proto\Precompile\Precompile\Precompile\obj\Debug\Precompile.csproj.CoreCompileInputs.cache
+E:\Projects\HexagonGame\Tools\proto\Precompile\Precompile\Precompile\obj\Debug\Proto.exe
+E:\Projects\HexagonGame\Tools\proto\Precompile\Precompile\Precompile\obj\Debug\Proto.pdb

@@ -11,13 +11,27 @@ namespace Osblow.Net.Server
         private Dictionary<int, Socket> m_clients = new Dictionary<int, Socket>();
         private NetBuffer m_buffer = new NetBuffer();
 
+        class ServerState
+        {
+            TcpListener Server;
+
+            public ServerState(TcpListener server)
+            {
+                Server = server;
+            }
+        }
 
         public GameServer(string address, int port)
         {
             IPAddress localAddr = IPAddress.Parse(address);
-            TcpListener server = new TcpListener(localAddr, port);
+            //TcpListener server = new TcpListener(localAddr, port);
+            IPEndPoint iPEnd = new IPEndPoint(localAddr, port);
+            Socket listener = new Socket(localAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            listener.Bind(iPEnd);
+            listener.Listen(100);
 
-            server.BeginAcceptSocket(OnConnected, server);
+            listener.BeginAccept(OnConnected, listener);
+            //server.BeginAcceptSocket(OnConnected, new ServerState(server));
         }
 
         private void OnConnected(IAsyncResult ar)
