@@ -20,9 +20,10 @@ namespace Osblow.Net.Client
 
         void Connect(string address, int port)
         {
-            m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            
             IPAddress ip = IPAddress.Parse(address);
             IPEndPoint iep = new IPEndPoint(ip, port);
+            m_socket = new Socket(ip.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
             Debug.Log("Connect to " + address + ":" + port);
             m_socket.BeginConnect(iep, new AsyncCallback(OnConnnect), m_socket);

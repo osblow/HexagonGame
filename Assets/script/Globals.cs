@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Osblow.Net.Server;
 using Osblow.Net.Client;
-
+using System.Net;
 
 public enum GameStep
 {
@@ -203,7 +203,7 @@ namespace Osblow
 
         public void StartServer()
         {
-            GameServer = new GameServer("127.0.0.1", 4050);
+            GameServer = new GameServer(GetPrivateIP(), 4050);
         }
 
         public void ConnectGame(string address, int port, GameConf conf)
@@ -449,6 +449,29 @@ namespace Osblow
             }
 
             return result;
+        }
+
+
+
+
+
+
+
+
+
+
+        //获取内网IP
+        public static string GetPrivateIP()
+        {
+            string AddressIP = string.Empty;
+            foreach (IPAddress ipAddress in Dns.GetHostEntry(Dns.GetHostName()).AddressList)
+            {
+                if (ipAddress.AddressFamily.ToString() == "InterNetwork")
+                {
+                    AddressIP = ipAddress.ToString();
+                }
+            }
+            return AddressIP;
         }
     }
 }

@@ -61,27 +61,13 @@ namespace Osblow.Net.Server
             {
                 for (int i = 0; i < s_ieps.Length; i++)
                 {
-                    UnityEngine.Debug.Log("send to port " + s_ieps[i]);
-                    byte[] data = CmdBroadcast.SendRoomConf(GetPrivateIP(), 4050, s_gameConf);
+                    //UnityEngine.Debug.Log("send to port " + s_ieps[i]);
+                    byte[] data = CmdBroadcast.SendRoomConf(Globals.GetPrivateIP(), 4050, s_gameConf);
                     s_sock.SendTo(data, s_ieps[i]);
                 }
                 Thread.Sleep(2000);
             }
 
-        }
-
-        //获取内网IP
-        public static string GetPrivateIP()
-        {
-            string AddressIP = string.Empty;
-            foreach (IPAddress ipAddress in Dns.GetHostEntry(Dns.GetHostName()).AddressList)
-            {
-                if (ipAddress.AddressFamily.ToString() == "InterNetwork")
-                {
-                    AddressIP = ipAddress.ToString();
-                }
-            }
-            return AddressIP;
         }
     }
 }
