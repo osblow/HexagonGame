@@ -6,31 +6,20 @@ namespace Osblow.Net.Server
 {
     public class CmdResponse
     {
-        static Proto s_serializer;
+        static ProtoSerializer s_serializer;
 
 
-        /// <summary>
-        /// 广播房间信息以连接
-        /// </summary>
-        /// <param name="address"></param>
-        /// <param name="port"></param>
-        /// <param name="gameConf"></param>
-        public static void SendRoomConf(string address, int port, GameConf gameConf)
+        public static void LoginResponse(Player player, int ownerGuid, List<Member> members, RoomConf conf)
         {
-            RoomBroadCast roomBroadCast = new RoomBroadCast();
-            roomBroadCast.address = address;
-            roomBroadCast.port = port;
-            RoomBroadCast.RoomConf conf = new RoomBroadCast.RoomConf();
-            conf.name = gameConf.Name;
-            conf.maxMemCount = gameConf.MemCount;
-            conf.mapType = (RoomBroadCast.RoomConf.MapType)gameConf.MapType;
-            conf.forceKill = gameConf.ForceKill;
-            roomBroadCast.roomConf = conf;
+            LoginResponse response = new LoginResponse();
+            response.guid = player.GUID;
+            response.members.AddRange(members);
+            response.roomConf = conf;
 
-            SerializeAndSend(Cmd.BroadcastRoomConf, roomBroadCast);
+            SerializeAndSend(player, Cmd.LoginResponse, response);
         }
 
-        static void SerializeAndSend(short cmd, object dataObj)
+        static void SerializeAndSend(Player player, short cmd, object dataObj)
         {
             byte[] data;
             using (System.IO.MemoryStream stream = new System.IO.MemoryStream())
@@ -39,10 +28,10 @@ namespace Osblow.Net.Server
                 data = stream.ToArray();
             }
 
-            Send(cmd, data);
+            Send(player, cmd, data);
         }
 
-        static void Send(short cmd, byte[] sendData)
+        static void Send(Player player, short cmd, byte[] sendData)
         {
             List<byte> data = new List<byte>();
 
@@ -55,14 +44,14 @@ namespace Osblow.Net.Server
             data.AddRange(BitConverter.GetBytes(length));
             data.AddRange(sendData);
             data.Add(tail);
-
-            //Osblow.App.Globals.SceneSingleton<SocketNetworkMng>().Send(data.ToArray());
+            
+            player.Send(data.ToArray());
         }
 
 
         static CmdResponse()
         {
-            s_serializer = new Proto();
+            s_serializer = new ProtoSerializer();
         }
     }
 }

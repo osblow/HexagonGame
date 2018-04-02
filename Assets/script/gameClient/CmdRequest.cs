@@ -8,88 +8,51 @@ namespace Osblow.Net.Client
 {
     public class CmdRequest
     {
-        static Proto s_serializer;
+        static ProtoSerializer s_serializer;
+        
 
-        /// <summary>
-        /// 广播房间信息以连接
-        /// </summary>
-        /// <param name="proto"></param>
-        static void RecieveRoomConf(object proto)
+        public static void Login(string name)
         {
-            RoomBroadCast roomData = proto as RoomBroadCast;
+            LoginRequest request = new LoginRequest();
+            request.name = name;
+            request.platform = Application.platform.ToString();
 
+            SerializeAndSend(Cmd.LoginRequest, request);
         }
 
-
-        public static void Handle(byte[] dataBytes)
+        static void SerializeAndSend(short cmd, object dataObj)
         {
-            if (dataBytes.Length < 6)
+            byte[] data;
+            using (System.IO.MemoryStream stream = new System.IO.MemoryStream())
             {
-                return;
+                s_serializer.Serialize(stream, dataObj);
+                data = stream.ToArray();
             }
+
+            Send(cmd, data);
+        }
+
+        static void Send(short cmd, byte[] sendData)
+        {
+            List<byte> data = new List<byte>();
+
+            byte head = 0x64;
+            int length = sendData.Length;
+            byte tail = 0x65;
+
+            data.Add(head);
+            data.AddRange(BitConverter.GetBytes(cmd));
+            data.AddRange(BitConverter.GetBytes(length));
+            data.AddRange(sendData);
+            data.Add(tail);
             
-            int index = 0;
-            // 处理粘包
-            while (true)
-            {
-                byte flag = dataBytes[index];
-                if (flag != 0x64)
-                {
-                    return;
-                }
-                index += 1;
-
-                short cmd = BitConverter.ToInt16(dataBytes, index);
-                index += 2;
-
-                ushort dataLen = BitConverter.ToUInt16(dataBytes, index);
-                index += 4;
-
-                if (index + dataLen + 1 > dataBytes.Length)
-                {
-                    break;
-                }
-
-                
-                Execute(cmd, dataBytes, index, dataLen);
-
-                index += (dataLen + 1);
-                if (index >= dataBytes.Length)
-                {
-                    break;
-                }
-            }
+            Globals.Instance.GameClient.Send(data.ToArray());
         }
-
-        static void Execute(short cmd, byte[] data, int index, int length)
-        {
-            using (System.IO.MemoryStream stream = new System.IO.MemoryStream(data, index, length))
-            {
-                object receieved = new object();
-                receieved = s_serializer.Deserialize(stream, null, s_handlers[cmd].ProtoType);
-                s_handlers[cmd].Handler(receieved);
-            }
-        }
-
-
-
-        static Dictionary<short, ProtoHandle> s_handlers;
 
 
         static CmdRequest()
         {
-            s_serializer = new Proto();
-
-            s_handlers = new Dictionary<short, ProtoHandle>()
-            {
-                { Cmd.BroadcastRoomConf, new ProtoHandle() { ProtoType=typeof(RoomBroadCast), Handler=RecieveRoomConf } },
-            };
-        }
-
-        struct ProtoHandle
-        {
-            public Type ProtoType;
-            public Action<object> Handler;
+            s_serializer = new ProtoSerializer();
         }
     }
 }

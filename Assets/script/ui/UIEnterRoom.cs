@@ -23,11 +23,13 @@ namespace Osblow
         {
             m_roomListRoot = GetWidget("RoomList/Viewport/Content").transform;
             m_roomItemTpl = GetWidget("RoomList/Viewport/Content/Item");
+
+            AddMsgEvent(MsgType.OnPlayerEnter, OnPlayerEnter);
         }
 
         private void OnPlayerEnter(object[] args)
         {
-            CreateItem("hehhe");
+            CreateItem(args[0].ToString() + " " + args[1].ToString());
         }
 
         private void CreateItem(string name)

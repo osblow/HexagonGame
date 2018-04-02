@@ -10,6 +10,44 @@
 // Generated from: proto_files/hexgame.proto
 namespace Osblow.HexProto
 {
+    [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"RoomConf")]
+    public partial class RoomConf : global::ProtoBuf.IExtensible
+    {
+        public RoomConf() { }
+
+        private string _name;
+        [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name = @"name", DataFormat = global::ProtoBuf.DataFormat.Default)]
+        public string name
+        {
+            get { return _name; }
+            set { _name = value; }
+        }
+        private int _maxMemCount;
+        [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name = @"maxMemCount", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+        public int maxMemCount
+        {
+            get { return _maxMemCount; }
+            set { _maxMemCount = value; }
+        }
+        private bool _forceKill;
+        [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name = @"forceKill", DataFormat = global::ProtoBuf.DataFormat.Default)]
+        public bool forceKill
+        {
+            get { return _forceKill; }
+            set { _forceKill = value; }
+        }
+        private int _mapType;
+        [global::ProtoBuf.ProtoMember(4, IsRequired = true, Name = @"mapType", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+        public int mapType
+        {
+            get { return _mapType; }
+            set { _mapType = value; }
+        }
+        private global::ProtoBuf.IExtension extensionObject;
+        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+        { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+    }
+
     [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"RoomBroadCast")]
     public partial class RoomBroadCast : global::ProtoBuf.IExtensible
     {
@@ -29,65 +67,229 @@ namespace Osblow.HexProto
             get { return _port; }
             set { _port = value; }
         }
-        private Osblow.HexProto.RoomBroadCast.RoomConf _roomConf;
+        private Osblow.HexProto.RoomConf _roomConf;
         [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name = @"roomConf", DataFormat = global::ProtoBuf.DataFormat.Default)]
-        public Osblow.HexProto.RoomBroadCast.RoomConf roomConf
+        public Osblow.HexProto.RoomConf roomConf
         {
             get { return _roomConf; }
             set { _roomConf = value; }
         }
-        [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"RoomConf")]
-        public partial class RoomConf : global::ProtoBuf.IExtensible
+        private global::ProtoBuf.IExtension extensionObject;
+        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+        { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+    }
+
+    [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"LoginRequest")]
+    public partial class LoginRequest : global::ProtoBuf.IExtensible
+    {
+        public LoginRequest() { }
+
+        private string _name;
+        [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name = @"name", DataFormat = global::ProtoBuf.DataFormat.Default)]
+        public string name
         {
-            public RoomConf() { }
+            get { return _name; }
+            set { _name = value; }
+        }
+        private string _platform;
+        [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name = @"platform", DataFormat = global::ProtoBuf.DataFormat.Default)]
+        public string platform
+        {
+            get { return _platform; }
+            set { _platform = value; }
+        }
+        private global::ProtoBuf.IExtension extensionObject;
+        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+        { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+    }
 
-            private string _name;
-            [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name = @"name", DataFormat = global::ProtoBuf.DataFormat.Default)]
-            public string name
-            {
-                get { return _name; }
-                set { _name = value; }
-            }
-            private int _maxMemCount;
-            [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name = @"maxMemCount", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-            public int maxMemCount
-            {
-                get { return _maxMemCount; }
-                set { _maxMemCount = value; }
-            }
-            private bool _forceKill;
-            [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name = @"forceKill", DataFormat = global::ProtoBuf.DataFormat.Default)]
-            public bool forceKill
-            {
-                get { return _forceKill; }
-                set { _forceKill = value; }
-            }
-            private Osblow.HexProto.RoomBroadCast.RoomConf.MapType _mapType;
-            [global::ProtoBuf.ProtoMember(4, IsRequired = true, Name = @"mapType", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
-            public Osblow.HexProto.RoomBroadCast.RoomConf.MapType mapType
-            {
-                get { return _mapType; }
-                set { _mapType = value; }
-            }
-            [global::ProtoBuf.ProtoContract(Name = @"MapType")]
-            public enum MapType
-            {
+    [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"Member")]
+    public partial class Member : global::ProtoBuf.IExtensible
+    {
+        public Member() { }
 
-                [global::ProtoBuf.ProtoEnum(Name = @"Small", Value = 0)]
-                Small = 0,
+        private int _guid;
+        [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name = @"guid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+        public int guid
+        {
+            get { return _guid; }
+            set { _guid = value; }
+        }
+        private string _name;
+        [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name = @"name", DataFormat = global::ProtoBuf.DataFormat.Default)]
+        public string name
+        {
+            get { return _name; }
+            set { _name = value; }
+        }
+        private global::ProtoBuf.IExtension extensionObject;
+        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+        { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+    }
 
-                [global::ProtoBuf.ProtoEnum(Name = @"Middle", Value = 1)]
-                Middle = 1,
+    [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"LoginResponse")]
+    public partial class LoginResponse : global::ProtoBuf.IExtensible
+    {
+        public LoginResponse() { }
 
-                [global::ProtoBuf.ProtoEnum(Name = @"Big", Value = 2)]
-                Big = 2
-            }
-
-            private global::ProtoBuf.IExtension extensionObject;
-            global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
-            { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+        private int _guid;
+        [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name = @"guid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+        public int guid
+        {
+            get { return _guid; }
+            set { _guid = value; }
+        }
+        private Osblow.HexProto.RoomConf _roomConf;
+        [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name = @"roomConf", DataFormat = global::ProtoBuf.DataFormat.Default)]
+        public Osblow.HexProto.RoomConf roomConf
+        {
+            get { return _roomConf; }
+            set { _roomConf = value; }
+        }
+        private readonly global::System.Collections.Generic.List<Osblow.HexProto.Member> _members = new global::System.Collections.Generic.List<Osblow.HexProto.Member>();
+        [global::ProtoBuf.ProtoMember(3, Name = @"members", DataFormat = global::ProtoBuf.DataFormat.Default)]
+        public global::System.Collections.Generic.List<Osblow.HexProto.Member> members
+        {
+            get { return _members; }
         }
 
+        private int _ownerGuid;
+        [global::ProtoBuf.ProtoMember(4, IsRequired = true, Name = @"ownerGuid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+        public int ownerGuid
+        {
+            get { return _ownerGuid; }
+            set { _ownerGuid = value; }
+        }
+        private global::ProtoBuf.IExtension extensionObject;
+        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+        { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+    }
+
+    [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"SyncMembers")]
+    public partial class SyncMembers : global::ProtoBuf.IExtensible
+    {
+        public SyncMembers() { }
+
+        private readonly global::System.Collections.Generic.List<Osblow.HexProto.Member> _members = new global::System.Collections.Generic.List<Osblow.HexProto.Member>();
+        [global::ProtoBuf.ProtoMember(1, Name = @"members", DataFormat = global::ProtoBuf.DataFormat.Default)]
+        public global::System.Collections.Generic.List<Osblow.HexProto.Member> members
+        {
+            get { return _members; }
+        }
+
+        private global::ProtoBuf.IExtension extensionObject;
+        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+        { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+    }
+
+    [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"BroadcastMainHex")]
+    public partial class BroadcastMainHex : global::ProtoBuf.IExtensible
+    {
+        public BroadcastMainHex() { }
+
+        private int _x;
+        [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name = @"x", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+        public int x
+        {
+            get { return _x; }
+            set { _x = value; }
+        }
+        private int _y;
+        [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name = @"y", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+        public int y
+        {
+            get { return _y; }
+            set { _y = value; }
+        }
+        private global::ProtoBuf.IExtension extensionObject;
+        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+        { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+    }
+
+    [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"RandOperation")]
+    public partial class RandOperation : global::ProtoBuf.IExtensible
+    {
+        public RandOperation() { }
+
+        private int _curPlayerGuid;
+        [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name = @"curPlayerGuid", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+        public int curPlayerGuid
+        {
+            get { return _curPlayerGuid; }
+            set { _curPlayerGuid = value; }
+        }
+        private global::ProtoBuf.IExtension extensionObject;
+        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+        { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+    }
+
+    [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"BroadcastOp")]
+    public partial class BroadcastOp : global::ProtoBuf.IExtensible
+    {
+        public BroadcastOp() { }
+
+        private int _op;
+        [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name = @"op", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+        public int op
+        {
+            get { return _op; }
+            set { _op = value; }
+        }
+        private global::ProtoBuf.IExtension extensionObject;
+        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+        { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+    }
+
+    [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"BroadcastHexPress")]
+    public partial class BroadcastHexPress : global::ProtoBuf.IExtensible
+    {
+        public BroadcastHexPress() { }
+
+        private int _x;
+        [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name = @"x", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+        public int x
+        {
+            get { return _x; }
+            set { _x = value; }
+        }
+        private int _y;
+        [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name = @"y", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+        public int y
+        {
+            get { return _y; }
+            set { _y = value; }
+        }
+        private global::ProtoBuf.IExtension extensionObject;
+        global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
+        { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }
+    }
+
+    [global::System.Serializable, global::ProtoBuf.ProtoContract(Name = @"BroadcastHexRelease")]
+    public partial class BroadcastHexRelease : global::ProtoBuf.IExtensible
+    {
+        public BroadcastHexRelease() { }
+
+        private int _x;
+        [global::ProtoBuf.ProtoMember(1, IsRequired = true, Name = @"x", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+        public int x
+        {
+            get { return _x; }
+            set { _x = value; }
+        }
+        private int _y;
+        [global::ProtoBuf.ProtoMember(2, IsRequired = true, Name = @"y", DataFormat = global::ProtoBuf.DataFormat.TwosComplement)]
+        public int y
+        {
+            get { return _y; }
+            set { _y = value; }
+        }
+        private bool _success;
+        [global::ProtoBuf.ProtoMember(3, IsRequired = true, Name = @"success", DataFormat = global::ProtoBuf.DataFormat.Default)]
+        public bool success
+        {
+            get { return _success; }
+            set { _success = value; }
+        }
         private global::ProtoBuf.IExtension extensionObject;
         global::ProtoBuf.IExtension global::ProtoBuf.IExtensible.GetExtensionObject(bool createIfMissing)
         { return global::ProtoBuf.Extensible.GetExtensionObject(ref extensionObject, createIfMissing); }

@@ -1,85 +1,39 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System;
-using System.Net;
 using System.Net.Sockets;
+using UnityEngine;
+
 
 namespace Osblow.Net.Server
 {
-    public class GameServer : ObjectBase
+    public class Player : ObjectBase
     {
-        private Dictionary<int, Socket> m_clients = new Dictionary<int, Socket>();
+        private Socket m_session;
+        private int m_guid;
+        public int GUID
+        {
+            get { return m_guid; }
+        }
+
         private NetBuffer m_buffer = new NetBuffer();
 
-        class ServerState
-        {
-            TcpListener Server;
 
-            public ServerState(TcpListener server)
-            {
-                Server = server;
-            }
+        public Player(Socket session, int guid)
+        {
+            m_session = session;
+            m_guid = guid;
         }
 
-        public GameServer(string address, int port)
+        public void Send(byte[] data)
         {
-            IPAddress localAddr = IPAddress.Parse(address);
-            //TcpListener server = new TcpListener(localAddr, port);
-            IPEndPoint iPEnd = new IPEndPoint(localAddr, port);
-            Socket listener = new Socket(localAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            listener.Bind(iPEnd);
-            listener.Listen(100);
-
-            listener.BeginAccept(OnConnected, listener);
-            //server.BeginAcceptSocket(OnConnected, new ServerState(server));
-        }
-
-        private void OnConnected(IAsyncResult ar)
-        {
-            Debug.Log("已连接");
-
-            TcpListener server = (TcpListener)ar.AsyncState;
-            Socket client_sock = server.EndAcceptSocket(ar);
-
-            int guid = client_sock.GetHashCode();
-            m_clients.Add(guid, client_sock);
-
-            try
-            {
-                Receive(guid);
-                //MsgMng.Dispatch(MsgType.Connected);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
-            finally { }
-        }
-
-        private bool CheckClientAvailable(int guid)
-        {
-            if (!m_clients.ContainsKey(guid))
-            {
-                return false;
-            }
-
-            if (!m_clients[guid].Connected)
-            {
-                return false;
-            }
-            
-            return true;
-        }
-
-        public void Send(int guid, byte[] data)
-        {
-            if (!CheckClientAvailable(guid))
+            if (!IsConnected())
             {
                 return;
             }
 
             // Begin sending the data to the remote device.     
-            m_clients[guid].BeginSend(data, 0, data.Length, 0, new AsyncCallback(SendCallback), m_clients[guid]);
+            m_session.BeginSend(data, 0, data.Length, 0, new AsyncCallback(SendCallback), m_session);
         }
         private void SendCallback(IAsyncResult ar)
         {
@@ -111,15 +65,15 @@ namespace Osblow.Net.Server
             }
         }
 
-        private void Receive(int guid)
+        public void Receive()
         {
             try
             {
                 // Create the state object.     
-                TCPState state = new TCPState(m_clients[guid]);
+                TCPState state = new TCPState(m_session);
 
                 // Begin receiving the data from the remote device.     
-                m_clients[guid].BeginReceive(state.Buffer, 0, TCPState.BuffSize, 0, new AsyncCallback(ReceiveCallback), state);
+                m_session.BeginReceive(state.Buffer, 0, TCPState.BuffSize, 0, new AsyncCallback(ReceiveCallback), state);
             }
             catch (Exception e)
             {
@@ -127,8 +81,7 @@ namespace Osblow.Net.Server
             }
         }
 
-
-        //MyBuffer m_buffer = new MyBuffer();
+        
         private void ReceiveCallback(IAsyncResult ar)
         {
             try
@@ -138,8 +91,7 @@ namespace Osblow.Net.Server
                 TCPState state = (TCPState)ar.AsyncState;
                 Socket client = state.Socket;
 
-                if (client == null || !client.Connected)// ||
-                                                        //!Globals.SceneSingleton<GameMng>().IsGaming)
+                if (!IsConnected())
                 {
                     Debug.Log("<color=red>不想接收 了</color>");
                     return;
@@ -164,7 +116,7 @@ namespace Osblow.Net.Server
 
                         if (m_buffer.CheckComplete())
                         {
-                            CmdRequest.Handle(m_buffer.Buffer.ToArray());
+                            CmdRequest.Handle(this, m_buffer.Buffer.ToArray());
                             m_buffer.Clear();
                         }
                     }
@@ -172,7 +124,7 @@ namespace Osblow.Net.Server
                     {
                         if (m_buffer.CheckComplete())
                         {
-                            CmdRequest.Handle(m_buffer.Buffer.ToArray());
+                            CmdRequest.Handle(this, m_buffer.Buffer.ToArray());
 
                             m_buffer.Clear();
                         }
@@ -181,7 +133,7 @@ namespace Osblow.Net.Server
                             m_buffer.Buffer.AddRange(realData);
                         }
                     }
-                    Receive(client.GetHashCode());
+                    Receive();
 
                 }
             }
@@ -199,23 +151,19 @@ namespace Osblow.Net.Server
 
         public void Close()
         {
-            foreach (Socket socket in m_clients.Values)
-            {
-                socket.Shutdown(SocketShutdown.Both);
-                socket.Close();
-            }
-
-            m_clients.Clear();
+            m_session.Shutdown(SocketShutdown.Both);
+            m_session.Close();
         }
 
         public void ForceClose()
         {
-            foreach (Socket socket in m_clients.Values)
-            {
-                socket.Close();
-            }
+            m_session.Close();
+        }
 
-            m_clients.Clear();
+
+        private bool IsConnected()
+        {
+            return m_session.Connected;
         }
     }
 }

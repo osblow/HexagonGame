@@ -6,7 +6,7 @@ namespace Osblow.Net.Server
 {
     public class CmdBroadcastRecv
     {
-        static Proto s_serializer;
+        static ProtoSerializer s_serializer;
 
         /// <summary>
         /// 广播房间信息以连接
@@ -90,7 +90,7 @@ namespace Osblow.Net.Server
 
         static CmdBroadcastRecv()
         {
-            s_serializer = new Proto();
+            s_serializer = new ProtoSerializer();
 
             s_handlers = new Dictionary<short, ProtoHandle>()
             {

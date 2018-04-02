@@ -6,7 +6,7 @@ namespace Osblow.Net.Server
 {
     public class CmdBroadcast
     {
-        static Proto s_serializer;
+        static ProtoSerializer s_serializer;
 
 
         /// <summary>
@@ -20,10 +20,10 @@ namespace Osblow.Net.Server
             RoomBroadCast roomBroadCast = new RoomBroadCast();
             roomBroadCast.address = address;
             roomBroadCast.port = port;
-            RoomBroadCast.RoomConf conf = new RoomBroadCast.RoomConf();
+            RoomConf conf = new RoomConf();
             conf.name = gameConf.Name;
             conf.maxMemCount = gameConf.MemCount;
-            conf.mapType = (RoomBroadCast.RoomConf.MapType)gameConf.MapType;
+            conf.mapType = (int)gameConf.MapType;
             conf.forceKill = gameConf.ForceKill;
             roomBroadCast.roomConf = conf;
 
@@ -62,7 +62,7 @@ namespace Osblow.Net.Server
 
         static CmdBroadcast()
         {
-            s_serializer = new Proto();
+            s_serializer = new ProtoSerializer();
         }
     }
 }

@@ -1,39 +1,62 @@
 package Osblow.HexProto;
-// message person { 
-//   required string name = 1; 
-//   optional int32 id = 2; 
-//   optional string email = 3; 
-//   enum phone_type { 
-//     mobile = 0; 
-//     home = 1; 
-//     work = 2; 
-//   } 
-//   message phone_number { 
-//     required string number = 1; 
-//     optional phone_type type = 2 [default = home]; 
-//   } 
-//   repeated phone_number phone = 4; 
-//   repeated int32 test_packed = 5 [packed = true];
-//   optional int32 test_deprecated = 6 [deprecated = true];
-//   optional int32 foreach = 7;
-// }
-// message opaque_message_list { repeated bytes messages_list=1; }
+
+
+message RoomConf {
+  required string name = 1;
+  required int32 maxMemCount = 2;
+  required bool forceKill = 3;
+  required int32 mapType = 4;
+}
 
 message RoomBroadCast {
   required string address = 1;
   required int32 port = 2;
 
-  message RoomConf {
-    required string name = 1;
-    required int32 maxMemCount = 2;
-    required bool forceKill = 3;
-
-    enum MapType {
-      Small = 0;
-      Middle = 1;
-      Big = 2;
-    }
-    required MapType mapType = 4;
-  }
   required RoomConf roomConf = 3;
+}
+
+message LoginRequest {
+  required string name = 1;
+  required string platform = 2;
+}
+
+
+message Member {
+  required int32 guid = 1;
+  required string name = 2;
+}
+
+message LoginResponse {
+  required int32 guid = 1;
+  required RoomConf roomConf = 2;
+  repeated Member members = 3;
+  required int32 ownerGuid = 4;
+}
+
+message SyncMembers {
+  repeated Member members = 1;
+}
+
+message BroadcastMainHex {
+  required int32 x = 1;
+  required int32 y = 2;
+}
+
+message RandOperation {
+  required int32 curPlayerGuid = 1;
+}
+
+message BroadcastOp {
+  required int32 op = 1;
+}
+
+message BroadcastHexPress {
+  required int32 x = 1;
+  required int32 y = 2;
+}
+
+message BroadcastHexRelease {
+  required int32 x = 1;
+  required int32 y = 2;
+  required bool success = 3;
 }

@@ -54,7 +54,7 @@ namespace Osblow.Net.Client
             }
         }
 
-        private bool CheckClientAvailable(int guid)
+        private bool CheckClientAvailable()
         {
             if (!m_socket.Connected)
             {
@@ -64,9 +64,9 @@ namespace Osblow.Net.Client
             return true;
         }
 
-        public void Send(int guid, byte[] data)
+        public void Send(byte[] data)
         {
-            if (!CheckClientAvailable(guid))
+            if (!CheckClientAvailable())
             {
                 return;
             }
@@ -83,7 +83,7 @@ namespace Osblow.Net.Client
                 // Complete sending the data to the remote device.     
                 int bytesSent = handler.EndSend(ar);
 
-
+                Debug.Log("已发送" + bytesSent + "字节");
 
                 //if (Globals.SceneSingleton<SocketNetworkMng>().MessageQueue.Count > 0)
                 //{
@@ -157,7 +157,7 @@ namespace Osblow.Net.Client
 
                         if (m_buffer.CheckComplete())
                         {
-                            CmdRequest.Handle(m_buffer.Buffer.ToArray());
+                            CmdHandler.Handle(m_buffer.Buffer.ToArray());
                             m_buffer.Clear();
                         }
                     }
@@ -165,7 +165,7 @@ namespace Osblow.Net.Client
                     {
                         if (m_buffer.CheckComplete())
                         {
-                            CmdRequest.Handle(m_buffer.Buffer.ToArray());
+                            CmdHandler.Handle(m_buffer.Buffer.ToArray());
 
                             m_buffer.Clear();
                         }

@@ -3,52 +3,95 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using System;
+using Osblow.HexProto;
 
 namespace Osblow.Net.Client
 {
     public class CmdHandler
     {
-        public static void Handle(byte[] data)
+        static ProtoSerializer s_serializer;
+
+        
+        private static void LoginResponse(object dataObj)
         {
+            Debug.Log("login success");
 
         }
 
-        public static T GetProtoInstance<T>(byte[] data, int index)
-        {
-            T t = default(T);
-            ushort length = BitConverter.ToUInt16(data, index);
-            index += 2;
 
-            using (MemoryStream ms = new MemoryStream())
+        public static void Handle(byte[] dataBytes)
+        {
+            if (dataBytes.Length < 6)
             {
-                //将消息写入流中
-                ms.Write(data, index, length);
-                //将流的位置归0
-                ms.Position = 0;
-                //使用工具反序列化对象
+                return;
             }
 
-            return t;
+            int index = 0;
+            // 处理粘包
+            while (true)
+            {
+                byte flag = dataBytes[index];
+                if (flag != 0x64)
+                {
+                    return;
+                }
+                index += 1;
+
+                short cmd = BitConverter.ToInt16(dataBytes, index);
+                index += 2;
+
+                int dataLen = BitConverter.ToInt32(dataBytes, index);
+                index += 4;
+
+                if (index + dataLen + 1 > dataBytes.Length)
+                {
+                    break;
+                }
+
+
+                Execute(cmd, dataBytes, index, dataLen);
+
+                index += (dataLen + 1);
+                if (index >= dataBytes.Length)
+                {
+                    break;
+                }
+            }
+        }
+
+        static void Execute(short cmd, byte[] data, int index, int length)
+        {
+            using (System.IO.MemoryStream stream = new System.IO.MemoryStream(data, index, length))
+            {
+                object receieved = new object();
+                receieved = s_serializer.Deserialize(stream, null, s_handlers[cmd].ProtoType);
+                // 延迟执行，与主线程同步
+                Globals.Instance.AsyncInvokeMng.Events.Add(delegate
+                {
+                    s_handlers[cmd].Handler(receieved);
+                });
+            }
         }
 
 
-        public static T GetProtoInstanceChat<T>(byte[] data, int index)
+
+        static Dictionary<short, ProtoHandle> s_handlers;
+
+
+        static CmdHandler()
         {
-            T t = default(T);
-            int length = BitConverter.ToInt32(data, index);
-            index += 4;
+            s_serializer = new ProtoSerializer();
 
-            using (MemoryStream ms = new MemoryStream())
+            s_handlers = new Dictionary<short, ProtoHandle>()
             {
-                //将消息写入流中
-                ms.Write(data, index, length);
-                //将流的位置归0
-                ms.Position = 0;
-                //使用工具反序列化对象
+                { Cmd.LoginResponse, new ProtoHandle() { ProtoType=typeof(LoginResponse), Handler=LoginResponse } },
+            };
+        }
 
-            }
-
-            return t;
+        struct ProtoHandle
+        {
+            public Type ProtoType;
+            public Action<object> Handler;
         }
     }
 }

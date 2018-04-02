@@ -1,4 +1,5 @@
-﻿using Osblow.HexProto;
+﻿using UnityEngine;
+using Osblow.HexProto;
 using System;
 using System.Collections.Generic;
 
@@ -6,20 +7,18 @@ namespace Osblow.Net.Server
 {
     class CmdRequest
     {
-        static Proto s_serializer;
+        static ProtoSerializer s_serializer;
 
-        /// <summary>
-        /// 广播房间信息以连接
-        /// </summary>
-        /// <param name="proto"></param>
-        static void RecieveRoomConf(object proto)
+        private static void LoginRequest(Player player, object dataObj)
         {
-            RoomBroadCast roomData = proto as RoomBroadCast;
-
+            Debug.Log("login request");
+            LoginRequest request = dataObj as LoginRequest;
+            Globals.Instance.SendMessage(MsgType.OnPlayerEnter, request.name, request.platform);
+            CmdResponse.LoginResponse(player, player.GUID, new List<Member>(), null);
         }
 
 
-        public static void Handle(byte[] dataBytes)
+        public static void Handle(Player player, byte[] dataBytes)
         {
             if (dataBytes.Length < 6)
             {
@@ -49,7 +48,7 @@ namespace Osblow.Net.Server
                 }
 
 
-                Execute(cmd, dataBytes, index, dataLen);
+                Execute(player, cmd, dataBytes, index, dataLen);
 
                 index += (dataLen + 1);
                 if (index >= dataBytes.Length)
@@ -59,7 +58,7 @@ namespace Osblow.Net.Server
             }
         }
 
-        static void Execute(short cmd, byte[] data, int index, int length)
+        static void Execute(Player player, short cmd, byte[] data, int index, int length)
         {
             using (System.IO.MemoryStream stream = new System.IO.MemoryStream(data, index, length))
             {
@@ -68,7 +67,7 @@ namespace Osblow.Net.Server
                 // 延迟执行，与主线程同步
                 Globals.Instance.AsyncInvokeMng.Events.Add(delegate
                 {
-                    s_handlers[cmd].Handler(receieved);
+                    s_handlers[cmd].Handler(player, receieved);
                 });
             }
         }
@@ -80,18 +79,18 @@ namespace Osblow.Net.Server
 
         static CmdRequest()
         {
-            s_serializer = new Proto();
+            s_serializer = new ProtoSerializer();
 
             s_handlers = new Dictionary<short, ProtoHandle>()
             {
-                { Cmd.BroadcastRoomConf, new ProtoHandle() { ProtoType=typeof(RoomBroadCast), Handler=RecieveRoomConf } },
+                { Cmd.LoginRequest, new ProtoHandle() { ProtoType=typeof(LoginRequest), Handler=LoginRequest } },
             };
         }
 
         struct ProtoHandle
         {
             public Type ProtoType;
-            public Action<object> Handler;
+            public Action<Player, object> Handler;
         }
     }
 }
