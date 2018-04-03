@@ -116,7 +116,7 @@ namespace Osblow
         public int CurPlayer = 1;
 
         public GameConf GameConf;
-
+        public string MyName = "";
 
         public PrefabPool PrefabPool;
         public UIManager UIManager;

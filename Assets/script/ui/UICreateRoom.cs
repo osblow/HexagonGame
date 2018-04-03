@@ -46,7 +46,11 @@ namespace Osblow
             {
                 BroadCastServer.Start(conf);
                 Globals.Instance.StartServer();
+                
                 Globals.Instance.UIManager.CreateUI<UIEnterRoom>();
+
+                // 自己作为第一个玩家
+                Globals.Instance.ConnectGame(Globals.GetPrivateIP(), 4050, conf);
             }
             else
             {

@@ -31,11 +31,18 @@ namespace Osblow
 
         private void OnClickOnline(GameObject obj, object[] args)
         {
-            Globals.Instance.IsOnline = true;
-            Globals.Instance.UIManager.RemoveUI(this);
-            Globals.Instance.UIManager.CreateUI<UIOnline>();
+            UIPrompt prompt = Globals.Instance.UIManager.CreateUI<UIPrompt>();
+            prompt.ConfirmDelegate += delegate (object[] promptArgs)
+            {
+                Globals.Instance.MyName = promptArgs[0].ToString();
 
-            BroadCastReciever.Start();
+                Globals.Instance.IsOnline = true;
+                Globals.Instance.UIManager.RemoveUI(this);
+                Globals.Instance.UIManager.CreateUI<UIOnline>();
+
+                BroadCastReciever.Start();
+            };
+            prompt.Title.text = "请给自己起个名字";
         }
     }
 }

@@ -20,17 +20,23 @@ namespace Osblow.Net.Server
             }
         }
 
+        private Socket m_listener;
+
+
         public GameServer(string address, int port)
         {
             IPAddress localAddr = IPAddress.Parse(address);
-            //TcpListener server = new TcpListener(localAddr, port);
             IPEndPoint iPEnd = new IPEndPoint(localAddr, port);
-            Socket listener = new Socket(localAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            listener.Bind(iPEnd);
-            listener.Listen(100);
+            m_listener = new Socket(localAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            m_listener.Bind(iPEnd);
+            m_listener.Listen(100);
 
-            listener.BeginAccept(OnConnected, listener);
-            //server.BeginAcceptSocket(OnConnected, new ServerState(server));
+            Accept();
+        }
+
+        private void Accept()
+        {
+            m_listener.BeginAccept(OnConnected, m_listener);
         }
 
         private void OnConnected(IAsyncResult ar)
@@ -54,7 +60,10 @@ namespace Osblow.Net.Server
             {
                 Console.WriteLine(e.ToString());
             }
-            finally { }
+            finally
+            {
+                Accept();
+            }
         }
         
         public void CloseAll()

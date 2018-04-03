@@ -43,6 +43,8 @@ namespace Osblow.Net.Client
                 {
                     Broadcast(MsgType.OnConnectedServer);
                 });
+
+                CmdRequest.Login(Globals.Instance.MyName);
             }
             catch (Exception e)
             {

@@ -72,7 +72,6 @@ namespace Osblow
         private void OnConnected()
         {
             Globals.Instance.UIManager.RemoveUI(this);
-            Osblow.Net.Client.CmdRequest.Login("玩家1");
         }
 
         private void CreateItem(string address, int port, GameConf conf)
