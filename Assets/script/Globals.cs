@@ -1,81 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Vector3 = UnityEngine.Vector3;
 using Osblow.Net.Server;
 using Osblow.Net.Client;
 using System.Net;
 
-public enum GameStep
-{
-    NotStart = 0,             // 未开始
-    SelectingMain = 1,        // 选择主格子
-    Start = 2,                // 游戏开始
-    RandomOperation = 3,      // 随机决定操作
-    Hitting = 4,              // 砸
-    GameOver = 6,             // 当局结束
-}
-
-public enum OpType
-{
-    Pass = 0,
-    White = 1,
-    Green = 2,
-    Both = 3,
-}
-
-public enum MapType
-{
-    Small = 0,
-    Middle = 1,
-    Big = 2,
-}
-
-
-public class GameConf
-{
-    public string Name = "";
-
-    public MapType MapType = MapType.Small;
-    public int MemCount = 2;
-    public bool ForceKill = true;
-
-
-    public static byte[] Pack(GameConf conf)
-    {
-        // namelen,name,map,memcount,force
-
-        List<byte> results = new List<byte>();
-        byte[] nameBytes = System.Text.Encoding.UTF8.GetBytes(conf.Name);
-
-        results.AddRange(System.BitConverter.GetBytes(nameBytes.Length));
-        results.AddRange(nameBytes);
-
-        results.Add((byte)conf.MapType);
-        results.Add((byte)conf.MemCount);
-        results.Add((byte)(conf.ForceKill ? 1 : 0));
-
-        return results.ToArray();
-    }
-
-    public static GameConf Unpack(byte[] data)
-    {
-        if (data == null || data.Length < 3)
-        {
-            return null;
-        }
-
-        GameConf conf = new GameConf();
-
-        int nameLen = System.BitConverter.ToInt32(data, 0);
-        conf.Name = System.Text.Encoding.UTF8.GetString(data, 4, nameLen);
-
-        conf.MapType = (MapType)data[4 + nameLen];
-        conf.MemCount = data[4 + nameLen + 1];
-        conf.ForceKill = data[4 + nameLen + 2] == 1;
-
-        return conf;
-    }
-}
 
 namespace Osblow
 {

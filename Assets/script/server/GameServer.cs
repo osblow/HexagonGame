@@ -8,7 +8,7 @@ namespace Osblow.Net.Server
 {
     public class GameServer : ObjectBase
     {
-        private Dictionary<int, Player> m_clients = new Dictionary<int, Player>();
+        private GameManager m_gameManager;
 
         class ServerState
         {
@@ -25,6 +25,8 @@ namespace Osblow.Net.Server
 
         public GameServer(string address, int port)
         {
+            m_gameManager = AddChild(new GameManager()) as GameManager;
+
             IPAddress localAddr = IPAddress.Parse(address);
             IPEndPoint iPEnd = new IPEndPoint(localAddr, port);
             m_listener = new Socket(localAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -48,8 +50,8 @@ namespace Osblow.Net.Server
 
             int guid = client_sock.GetHashCode();
             Player player = new Player(client_sock, guid);
-
-            m_clients.Add(guid, player);
+            
+            m_gameManager.AddPlayer(guid, player);
 
             try
             {
@@ -68,22 +70,12 @@ namespace Osblow.Net.Server
         
         public void CloseAll()
         {
-            foreach (Player player in m_clients.Values)
-            {
-                player.Close();
-            }
-
-            m_clients.Clear();
+            m_gameManager.CloseAll();
         }
 
         public void ForceClose()
         {
-            foreach (Player player in m_clients.Values)
-            {
-                player.ForceClose();
-            }
-
-            m_clients.Clear();
+            m_gameManager.ForceCloseAll();
         }
     }
 }
