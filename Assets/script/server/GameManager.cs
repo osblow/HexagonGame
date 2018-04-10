@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Osblow.Net.Server
 {
-    class GameManager : ObjectBase
+    public class GameManager : ObjectBase
     {
         public Dictionary<int, Player> m_players;
 
@@ -71,9 +71,11 @@ namespace Osblow.Net.Server
         {
             if (OpType == OpType.Pass)
             {
-                uiGame.ShowWheel(false);
-                uiGame.ShowWheelLater(true, 0.5f);
+                // 此轮跳过，延迟1秒到下一位
 
+                CmdResponse.RandomOperation(null, OpType);
+
+                // todo: 延迟
                 NextPlayer();
                 return;
             }
@@ -81,15 +83,13 @@ namespace Osblow.Net.Server
             // 检查是否有选定的颜色,如果已经没有相应的颜色，则再次随机
             if (OpType != OpType.Both && !HexManager.HasColor(OpType))
             {
-                uiGame.ShowWheel(false);
-                uiGame.ShowWheelLater(true, 0.5f);
-                UIManager.SendMessage(MsgType.OnShowTips, "颜色无效，再转一回吧");
+                // 重新随机
 
                 return;
             }
 
             GameStep = GameStep.Hitting;
-            uiGame.ShowWheel(false);
+            CmdResponse.StartHitting(null, OpType);
         }
 
         private void NextPlayer(bool isGood = false)
@@ -100,11 +100,10 @@ namespace Osblow.Net.Server
                 CurPlayer = 1;
             }
 
-            UIGame uiGame = UIManager.GetUIByType<UIGame>();
-            uiGame.SetCurPlayer(CurPlayer);
+            CmdResponse.CurrentPlayer(null, 0);
 
             string goodOrNot = isGood ? "GOOD!!!\n" : "";
-            UIManager.SendMessage(MsgType.OnShowTips, goodOrNot + "下回合: 玩家" + CurPlayer);
+            CmdResponse.SetScore(null, 0, 0);
         }
 
 
@@ -117,14 +116,6 @@ namespace Osblow.Net.Server
         private GameHexagon m_curTargetHex;
         private GameHexagon m_singleTargetHex; // 强制模式下，每轮必须砸掉一个且是唯一一个，这里保存第一次砸中的格子
         private const float c_strenghtSensitivity = 1.0f;
-
-        public override void Update(float delta)
-        {
-            base.Update(delta);
-
-            HandleHitting();
-        }
-
         
         public override void Destroy()
         {
@@ -133,103 +124,84 @@ namespace Osblow.Net.Server
             BroadCastServer.Stop();
             BroadCastReciever.Stop();
         }
+        
 
-        private void HandleHitting()
+        public void SetMain(int x, int y)
         {
-            if (GameStep == GameStep.SelectingMain)
+            m_mainHex = HexManager.GetHexagon(x, y) as GameHexagon;
+            m_mainHex.IsMain = true;
+            GameStep = GameStep.Start;
+
+            // 开始随机
+            // GameStep = GameStep.RandomOperation;
+        }
+
+
+        private bool m_isHitting = false;
+        
+        public void StartHammer(int x, int y)
+        {
+            if (m_curTargetHex != null)
             {
-                HandleMain();
+                return;
             }
-            else if (GameStep == GameStep.Hitting)
+
+            GameHexagon theHex = HexManager.GetHexagon(x, y) as GameHexagon;
+
+            // 在强制模式下，必须砸同一个格子
+            if (GameConf.ForceKill && m_singleTargetHex != null && m_singleTargetHex != theHex)
             {
-                HandleTarget();
+                CmdResponse.Alert(null, "必须砸同一个格子！");
+                return;
+            }
+
+            if (theHex != null && theHex != m_mainHex && CheckColor(theHex, OpType))
+            {
+                m_curTargetHex = theHex;
+                m_singleTargetHex = theHex;
+
+                // 重置力度
             }
         }
 
-        private void HandleMain()
+        private void OnHammerUpdate()
         {
-            if (Input.GetMouseButtonDown(0))
+            if (!m_isHitting)
             {
-                Hexagon theHex = GetHittingHex();
-                if (theHex != null)
-                {
-                    m_mainHex = theHex as GameHexagon;
-                    m_mainHex.OnBecomeMain();
-                    GameStep = GameStep.Start;
-
-                    UIManager.GetUIByType<UIGame>().ShowWheelLater(true, 1);
-                    GameStep = GameStep.RandomOperation;
-                }
+                return;
             }
+
+            // 模拟力度变化 
         }
 
-        private void HandleTarget()
+        public void EndHammer()
         {
-            // 按下时选择一一个格子，并开始模拟力度
-            if (Input.GetMouseButtonDown(0))
+            if (m_curTargetHex == null)
             {
-                if (m_curTargetHex != null)
-                {
-                    return;
-                }
-
-                GameHexagon theHex = GetHittingHex();
-
-                // 在强制模式下，必须砸同一个格子
-                if (GameConf.ForceKill && m_singleTargetHex != null && m_singleTargetHex != theHex)
-                {
-                    UIManager.SendMessage(MsgType.OnShowTips, "必须砸同一个格子！");
-                    return;
-                }
-
-                if (theHex != null && theHex != m_mainHex && CheckColor(theHex, OpType))
-                {
-                    m_curTargetHex = theHex;
-                    m_singleTargetHex = theHex;
-                    UIManager.GetUIByType<UIGame>().StartSliderMoving();
-
-                    Hammer.transform.position = m_curTargetHex.Obj.transform.position + Vector3.up;
-                }
+                return;
             }
 
-            // 抬起时加判断，如果是按在同一个格子上，则为砸下，否则为取消
-            if (Input.GetMouseButtonUp(0))
+            float strength = 0;// UIManager.GetUIByType<UIGame>().StopSliderMoving() * c_strenghtSensitivity;
+            //if (m_curTargetHex == GetHittingHex())
             {
-                if (m_curTargetHex == null)
-                {
-                    return;
-                }
+                //if(strength > 0.95f)
+                //{
+                //    GameView.ShowTips("GOOD !!!");
+                //}
 
-                float strength = UIManager.GetUIByType<UIGame>().StopSliderMoving() * c_strenghtSensitivity;
-                if (m_curTargetHex == GetHittingHex())
-                {
-                    //if(strength > 0.95f)
-                    //{
-                    //    GameView.ShowTips("GOOD !!!");
-                    //}
-
-                    // 锤子
-                    Hammer.Knock();
-
-                    CoroutineManager.StopAllCoroutines();
-                    CoroutineManager.StartCoroutine(UpdateAllHexesLater(strength));
-                }
-                else
-                {
-                    m_curTargetHex = null;
-                    m_singleTargetHex = null;
-                }
-
-                UIManager.GetUIByType<UIGame>().ResetSlider();
-                //HexManager.OnSelectTarget(null);
+                // 锤子
+                CmdResponse.HammerKnock(null, strength);
             }
-        }
+            //else
+            //{
+            //    m_curTargetHex = null;
+            //    m_singleTargetHex = null;
+            //}
 
-        IEnumerator UpdateAllHexesLater(float lastStrength)
-        {
-            yield return new WaitForSeconds(0.1f);
+            // 重置力度
 
-            m_curTargetHex.OnHit(lastStrength);
+            // 下一轮
+            m_curTargetHex.OnHit(strength);
             HexManager.UpdateAllBalance();
 
             // 如果是强制砸落，则必须当前块掉落再进行下一轮
@@ -239,21 +211,19 @@ namespace Osblow.Net.Server
                 if (GameStep != GameStep.GameOver)
                 {
                     GameStep = GameStep.RandomOperation;
-                    UIManager.GetUIByType<UIGame>().ShowWheelLater(true, 1f);
 
-                    NextPlayer(lastStrength > 0.95f);
+                    CmdResponse.CurrentPlayer(null, 0);
                 }
                 m_singleTargetHex = null;
             }
 
             m_curTargetHex = null;
         }
-
+        
         private static bool CheckColor(GameHexagon hex, OpType op)
         {
             if (op == OpType.Pass)
             {
-                Globals.Instance.UIManager.SendMessage(MsgType.OnShowTips, "此次跳过");
                 return false;
             }
             else if (op == OpType.Both)
@@ -264,29 +234,13 @@ namespace Osblow.Net.Server
             {
                 if (hex.OpType != op)
                 {
-                    Globals.Instance.UIManager.SendMessage(MsgType.OnShowTips,
-                        string.Format("<color=yellow>必须砸{0}颜色块！</color>", UIConstants.s_ops[op]));
+                    CmdResponse.Alert(null, string.Format("<color=yellow>必须砸{0}颜色块！</color>", UIConstants.s_ops[op]));
                 }
 
                 return hex.OpType == op;
             }
         }
-
-        private GameHexagon GetHittingHex()
-        {
-            GameHexagon result = null;
-
-            RaycastHit hit;
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out hit, 100, LayerMask.GetMask("GameHex")))
-            {
-                // Hexagon对象
-                result = hit.transform.GetComponent<CustomCollider>().ParentHexagon as GameHexagon;
-            }
-
-            return result;
-        }
-
+        
 
         public void CloseAll()
         {

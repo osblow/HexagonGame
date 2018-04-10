@@ -272,7 +272,7 @@ namespace Osblow.Net.Server
 
         public OpType OpType = OpType.Both;
 
-        public bool MainHex = false;
+        public bool IsMain = false;
 
 
         public GameHexagon(Vector3 pos, int index_x, int index_y) : base(pos, index_x, index_y)
@@ -335,7 +335,7 @@ namespace Osblow.Net.Server
 
 
                 // 游戏结束 
-                if (MainHex)
+                if (IsMain)
                 {
                     Globals.Instance.OnGameOver();
                 }

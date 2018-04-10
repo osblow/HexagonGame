@@ -19,6 +19,36 @@ namespace Osblow.Net.Server
             SerializeAndSend(player, Cmd.LoginResponse, response);
         }
 
+        public static void CurrentPlayer(Player player, int guid)
+        {
+
+        }
+
+        public static void RandomOperation(Player player, OpType opType)
+        {
+
+        }
+
+        public static void StartHitting(Player player, OpType opType)
+        {
+
+        }
+
+        public static void SetScore(Player player, int score, int quality)
+        {
+
+        }
+
+        public static void Alert(Player player, string message)
+        {
+
+        }
+
+        public static void HammerKnock(Player player, float strength)
+        {
+
+        }
+
         static void SerializeAndSend(Player player, short cmd, object dataObj)
         {
             byte[] data;

@@ -60,6 +60,10 @@ namespace Osblow.Net.Server
             }
         }
         
+        public Hexagon GetHexagon(int x, int y)
+        {
+            return m_hexagons[x][y];
+        }
 
         public bool HasColor(OpType op)
         {
