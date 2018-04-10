@@ -11,11 +11,11 @@ namespace Osblow.Net.Server
 
             if (type == HexType.Game)
             {
-                result = new GameHexagon(sibling.GetSiblingPos(dirToSibling));
+                result = new GameHexagon(sibling.GetSiblingPos(dirToSibling), index_x, index_y);
             }
             else if (type == HexType.Solid)
             {
-                result = new SolidHexagon(sibling.GetSiblingPos(dirToSibling));
+                result = new SolidHexagon(sibling.GetSiblingPos(dirToSibling), index_x, index_y);
             }
 
             return result;
