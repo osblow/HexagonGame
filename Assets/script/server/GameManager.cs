@@ -6,12 +6,14 @@ namespace Osblow.Net.Server
     public class GameManager : ObjectBase
     {
         public Dictionary<int, Player> m_players;
+        public Player Owner;
 
         public HexManager HexManager;
 
         public GameStep GameStep;
         public OpType OpType = OpType.Pass;
         public int CurPlayer = 1;
+        public Player CurrentPlayer;
 
         public GameConf GameConf;
 
@@ -28,6 +30,11 @@ namespace Osblow.Net.Server
 
         public void AddPlayer(int guid, Player player)
         {
+            if(m_players.Count <= 0)
+            {
+                Owner = player;
+            }
+
             if (m_players.ContainsKey(guid))
             {
                 m_players[guid].Close();
@@ -37,12 +44,28 @@ namespace Osblow.Net.Server
             m_players[guid] = player;
         }
 
+        public void OnPlayerLogin(Player player)
+        {
+            foreach (Player p in m_players.Values)
+            {
+                if (p == player)
+                {
+                    continue;
+                }
+
+                CmdResponse.LoginResponse(player, Owner.GUID, new List<Player>(m_players.Values), GameConf);
+            }
+        }
 
         public void ToGame()
         {
             CurPlayer = 1;
             
             GameStep = GameStep.SelectingMain;
+            foreach(Player p in m_players.Values)
+            {
+                CmdResponse.StartGame(p);
+            }
         }
 
         public void EndGame()
@@ -65,6 +88,11 @@ namespace Osblow.Net.Server
         public void OnGameOver()
         {
             GameStep = GameStep.GameOver;
+
+            foreach(Player p in m_players.Values)
+            {
+                CmdResponse.EndGame(p);
+            }
         }
 
         public void OnStartHitting()
@@ -89,7 +117,11 @@ namespace Osblow.Net.Server
             }
 
             GameStep = GameStep.Hitting;
-            CmdResponse.StartHitting(null, OpType);
+
+            foreach(Player p in m_players.Values)
+            {
+                CmdResponse.StartHitting(p, OpType);
+            }
         }
 
         private void NextPlayer(bool isGood = false)
@@ -100,10 +132,13 @@ namespace Osblow.Net.Server
                 CurPlayer = 1;
             }
 
-            CmdResponse.CurrentPlayer(null, 0);
+            foreach (Player p in m_players.Values)
+            {
+                CmdResponse.CurrentPlayer(p, 0);
+                CmdResponse.SetScore(p, 1, 0);
+            }
 
             string goodOrNot = isGood ? "GOOD!!!\n" : "";
-            CmdResponse.SetScore(null, 0, 0);
         }
 
 
@@ -134,6 +169,10 @@ namespace Osblow.Net.Server
 
             // 开始随机
             // GameStep = GameStep.RandomOperation;
+            foreach(Player p in m_players.Values)
+            {
+                CmdResponse.MainHex(p, x, y);
+            }
         }
 
 
@@ -151,7 +190,7 @@ namespace Osblow.Net.Server
             // 在强制模式下，必须砸同一个格子
             if (GameConf.ForceKill && m_singleTargetHex != null && m_singleTargetHex != theHex)
             {
-                CmdResponse.Alert(null, "必须砸同一个格子！");
+                CmdResponse.Alert(CurrentPlayer, "必须砸同一个格子！");
                 return;
             }
 
@@ -161,6 +200,7 @@ namespace Osblow.Net.Server
                 m_singleTargetHex = theHex;
 
                 // 重置力度
+                
             }
         }
 

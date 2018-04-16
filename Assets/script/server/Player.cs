@@ -16,6 +16,8 @@ namespace Osblow.Net.Server
             get { return m_guid; }
         }
 
+        public string Name = "";
+
         private NetBuffer m_buffer = new NetBuffer();
 
 

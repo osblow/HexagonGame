@@ -8,7 +8,7 @@ namespace Osblow.Net.Server
 {
     public class GameServer : ObjectBase
     {
-        private GameManager m_gameManager;
+        public GameManager GameManager;
 
         class ServerState
         {
@@ -25,7 +25,7 @@ namespace Osblow.Net.Server
 
         public GameServer(string address, int port)
         {
-            m_gameManager = AddChild(new GameManager()) as GameManager;
+            GameManager = AddChild(new GameManager()) as GameManager;
 
             IPAddress localAddr = IPAddress.Parse(address);
             IPEndPoint iPEnd = new IPEndPoint(localAddr, port);
@@ -51,7 +51,7 @@ namespace Osblow.Net.Server
             int guid = client_sock.GetHashCode();
             Player player = new Player(client_sock, guid);
             
-            m_gameManager.AddPlayer(guid, player);
+            GameManager.AddPlayer(guid, player);
 
             try
             {
@@ -70,12 +70,12 @@ namespace Osblow.Net.Server
         
         public void CloseAll()
         {
-            m_gameManager.CloseAll();
+            GameManager.CloseAll();
         }
 
         public void ForceClose()
         {
-            m_gameManager.ForceCloseAll();
+            GameManager.ForceCloseAll();
         }
     }
 }

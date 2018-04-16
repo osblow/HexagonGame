@@ -13,8 +13,9 @@ namespace Osblow.Net.Server
         {
             Debug.Log("login request");
             LoginRequest request = dataObj as LoginRequest;
-            Globals.Instance.SendMessage(MsgType.OnPlayerEnter, request.name, request.platform);
-            CmdResponse.LoginResponse(player, player.GUID, new List<Member>(), null);
+            //Globals.Instance.SendMessage(MsgType.OnPlayerEnter, request.name, request.platform);
+            //CmdResponse.LoginResponse(player, Globals.Instance.GameServer.GameManager.Owner.GUID, new List<Member>(), null);
+            Globals.Instance.GameServer.GameManager.OnPlayerLogin(player);
         }
 
 

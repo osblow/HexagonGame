@@ -9,19 +9,50 @@ namespace Osblow.Net.Server
         static ProtoSerializer s_serializer;
 
 
-        public static void LoginResponse(Player player, int ownerGuid, List<Member> members, RoomConf conf)
+        public static void LoginResponse(Player player, int ownerGuid, List<Player> players, GameConf conf)
         {
             LoginResponse response = new LoginResponse();
             response.guid = player.GUID;
-            response.members.AddRange(members);
-            response.roomConf = conf;
+            foreach(Player p in players)
+            {
+                Member m = new Member();
+                m.guid = p.GUID;
+                m.name = p.Name;
+                response.members.Add(m);
+            }
+
+            RoomConf roomConf = new RoomConf();
+            roomConf.name = conf.Name;
+            roomConf.mapType = (int)conf.MapType;
+            roomConf.maxMemCount = conf.MemCount;
+            roomConf.forceKill = conf.ForceKill;
+            response.roomConf = roomConf;
+            response.ownerGuid = ownerGuid;
 
             SerializeAndSend(player, Cmd.LoginResponse, response);
         }
 
+        public static void StartGame(Player player)
+        {
+            SerializeAndSend(player, Cmd.StartGame);
+        }
+
+        public static void EndGame(Player player)
+        {
+            SerializeAndSend(player, Cmd.EndGame);
+        }
+
+        public static void MainHex(Player player, int x, int y)
+        {
+            BroadcastMainHex proto = new BroadcastMainHex();
+            proto.x = x;
+            proto.y = y;
+            SerializeAndSend(player, Cmd.MainHex, proto);
+        }
+
         public static void CurrentPlayer(Player player, int guid)
         {
-
+            SerializeAndSend(player, Cmd.CurrentPlayer, guid);
         }
 
         public static void RandomOperation(Player player, OpType opType)
@@ -41,7 +72,7 @@ namespace Osblow.Net.Server
 
         public static void Alert(Player player, string message)
         {
-
+            SerializeAndSend(player, Cmd.Alert, message);
         }
 
         public static void HammerKnock(Player player, float strength)
@@ -49,13 +80,17 @@ namespace Osblow.Net.Server
 
         }
 
-        static void SerializeAndSend(Player player, short cmd, object dataObj)
+        static void SerializeAndSend(Player player, short cmd, object dataObj=null)
         {
-            byte[] data;
-            using (System.IO.MemoryStream stream = new System.IO.MemoryStream())
+            byte[] data = null;
+
+            if (dataObj != null)
             {
-                s_serializer.Serialize(stream, dataObj);
-                data = stream.ToArray();
+                using (System.IO.MemoryStream stream = new System.IO.MemoryStream())
+                {
+                    s_serializer.Serialize(stream, dataObj);
+                    data = stream.ToArray();
+                }
             }
 
             Send(player, cmd, data);
@@ -66,13 +101,13 @@ namespace Osblow.Net.Server
             List<byte> data = new List<byte>();
 
             byte head = 0x64;
-            int length = sendData.Length;
+            int length = sendData == null ? 0 : sendData.Length;
             byte tail = 0x65;
 
             data.Add(head);
             data.AddRange(BitConverter.GetBytes(cmd));
             data.AddRange(BitConverter.GetBytes(length));
-            data.AddRange(sendData);
+            if(sendData != null) data.AddRange(sendData);
             data.Add(tail);
             
             player.Send(data.ToArray());
